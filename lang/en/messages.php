@@ -122,4 +122,11 @@ return [
     'current_language' => 'Current Language',
     'selected_locale' => 'Selected Locale',
     'available_languages' => 'Available Languages',
+
+    // Welcome Page
+    'welcome_title' => 'Fergana Kadastr',
+    'welcome_subtitle' => 'Farg\'ona viloyati kadastr tizimi. Hujjatlarni yuklash va boshqarish uchun tizimga kiring.',
+    'login_button' => 'Tizimga kirish',
+    'register_button' => 'Ro\'yxatdan o\'tish',
+    'dashboard_button' => 'Boshqaruv paneli',
 ];

@@ -123,6 +123,13 @@ return [
     'selected_locale' => 'Tanlangan til',
     'available_languages' => 'Mavjud tillar',
 
+    // Welcome Page
+    'welcome_title' => 'Farg\'ona Kadastr',
+    'welcome_subtitle' => 'Farg\'ona viloyati kadastr tizimi. Hujjatlarni yuklash va boshqarish uchun tizimga kiring.',
+    'login_button' => 'Tizimga kirish',
+    'register_button' => 'Ro\'yxatdan o\'tish',
+    'dashboard_button' => 'Boshqaruv paneli',
+
     // Region Names (Farg'ona viloyati)
     'regions_list' => [
         'Quvasoy shahar' => 'Quvasoy shahar',

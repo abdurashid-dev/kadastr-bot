@@ -61,12 +61,12 @@ const activeItemStyles = computed(() => (url: string) =>
 
 const mainNavItems: NavItem[] = [
   {
-    title: "Dashboard",
+    title: "Bosh sahifa",
     href: "/dashboard",
     icon: LayoutGrid,
   },
   {
-    title: "Files",
+    title: "Fayllar",
     href: "/files",
     icon: FileText,
   },

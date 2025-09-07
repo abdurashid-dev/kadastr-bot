@@ -123,6 +123,13 @@ return [
     'selected_locale' => 'Танланган тил',
     'available_languages' => 'Мавжуд тиллар',
 
+    // Welcome Page
+    'welcome_title' => 'Фарғона Кадастр',
+    'welcome_subtitle' => 'Фарғона вилояти кадастр тизими. Ҳужжатларни юклаш ва бошқариш учун тизимга киринг.',
+    'login_button' => 'Тизимга кириш',
+    'register_button' => 'Рўйхатдан ўтиш',
+    'dashboard_button' => 'Бошқарув панели',
+
     // Region Names (Фарғона вилояти)
     'regions_list' => [
         'Қувасой шаҳар' => 'Қувасой шаҳар',

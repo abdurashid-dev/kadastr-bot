@@ -85,10 +85,9 @@ const formatDate = (date) => {
         class="bg-white dark:bg-gray-800 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border p-6"
       >
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Welcome back, {{ user.name }}!
+          Xush kelibsiz, {{ user.name }}!
         </h1>
         <p class="text-gray-600 dark:text-gray-400">
-          You are logged in as a
           <span class="font-semibold capitalize">{{ user.role }}</span>
         </p>
       </div>
@@ -121,13 +120,13 @@ const formatDate = (date) => {
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">My Files</h3>
           </div>
           <p class="text-gray-600 dark:text-gray-400 mb-4">
-            View your uploaded files and their approval status
+            Sizning yuklangan fayllaringizni va ularning tasdiqlanish holatini ko'rish
           </p>
           <Link
             href="/approval/history"
             class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            View History
+            Tarixni ko'rish
             <svg
               class="w-4 h-4 ml-2"
               fill="none"
@@ -168,17 +167,17 @@ const formatDate = (date) => {
               </svg>
             </div>
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-              Review Files
+              Fayllarni ko'rish
             </h3>
           </div>
           <p class="text-gray-600 dark:text-gray-400 mb-4">
-            Review and approve/reject pending file uploads
+            Kutilayotgan fayllarni ko'rish va tasdiqlash/rad etish
           </p>
           <Link
             href="/approval/pending"
             class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
           >
-            Review Pending
+            Kutilayotgan fayllarni ko'rish
             <svg
               class="w-4 h-4 ml-2"
               fill="none"
@@ -219,7 +218,7 @@ const formatDate = (date) => {
               </svg>
             </div>
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-              Final Approval
+              Oxirgi tasdiqlash
             </h3>
           </div>
           <p class="text-gray-600 dark:text-gray-400 mb-4">
