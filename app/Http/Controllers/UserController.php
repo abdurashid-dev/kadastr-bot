@@ -96,6 +96,11 @@ class UserController extends Controller
             unset($validated['password']);
         }
 
+        // Remove role from update if it's null (not provided)
+        if (array_key_exists('role', $validated) && is_null($validated['role'])) {
+            unset($validated['role']);
+        }
+
         $user->update($validated);
 
         return redirect()->route('users.index')->with('success', 'User updated successfully');
@@ -151,7 +156,7 @@ class UserController extends Controller
     /**
      * Update the specified user's role.
      */
-    public function updateRole(Request $request, User $user): JsonResponse
+    public function updateRole(Request $request, User $user): RedirectResponse
     {
         $this->authorize('assignRole', $user);
 
@@ -161,51 +166,40 @@ class UserController extends Controller
 
         // Prevent changing role of the last CEO
         if ($user->isCeo() && User::where('role', 'ceo')->count() <= 1) {
-            return response()->json([
-                'message' => 'Cannot change role of the last CEO',
-            ], 422);
+            return redirect()->route('users.index')->with('error', 'Cannot change role of the last CEO');
         }
 
         $user->update(['role' => $request->role]);
 
-        return response()->json([
-            'message' => 'User role updated successfully',
-            'user' => $user->fresh(),
-        ]);
+        return redirect()->route('users.index')->with('success', 'User role updated successfully');
     }
 
     /**
      * Remove the specified user from storage.
      */
-    public function destroy(User $user): JsonResponse
+    public function destroy(User $user): RedirectResponse
     {
         $this->authorize('delete', $user);
 
         // Prevent deletion of the last admin user
         if ($user->isCeo() && User::where('role', 'ceo')->count() <= 1) {
-            return response()->json([
-                'message' => 'Cannot delete the last CEO user',
-            ], 422);
+            return redirect()->route('users.index')->with('error', 'Cannot delete the last CEO user');
         }
 
         // Prevent users from deleting themselves
         if (auth()->id() === $user->id) {
-            return response()->json([
-                'message' => 'You cannot delete your own account',
-            ], 422);
+            return redirect()->route('users.index')->with('error', 'You cannot delete your own account');
         }
 
         $user->delete();
 
-        return response()->json([
-            'message' => 'User deleted successfully',
-        ]);
+        return redirect()->route('users.index')->with('success', 'User deleted successfully');
     }
 
     /**
      * Get user statistics for dashboard.
      */
-    public function statistics(): JsonResponse
+    public function statistics(): Response
     {
         $this->authorize('viewAny', User::class);
 
@@ -217,6 +211,8 @@ class UserController extends Controller
             'recent_users' => User::latest()->limit(5)->get(['id', 'name', 'email', 'role', 'created_at']),
         ];
 
-        return response()->json($stats);
+        return Inertia::render('Users/Statistics', [
+            'stats' => $stats,
+        ]);
     }
 }

@@ -67,6 +67,10 @@ const props = defineProps({
     type: Array,
     required: true,
   },
+  user: {
+    type: Object,
+    required: true,
+  },
 });
 
 const breadcrumbs = [
@@ -75,6 +79,36 @@ const breadcrumbs = [
     href: "/files",
   },
 ];
+
+// Status options based on user role
+const statusOptions = computed(() => {
+  const baseOptions = [
+    { value: "pending", label: "Kutilmoqda" },
+    { value: "rejected", label: "Rad etilgan" },
+  ];
+
+  // Checkers can set status to waiting
+  if (props.user.role === "checker") {
+    return [...baseOptions, { value: "waiting", label: "Bino inshoatga yuborish" }];
+  }
+
+  // Registrators can set status to accepted
+  if (props.user.role === "registrator") {
+    return [...baseOptions, { value: "accepted", label: "Tasdiqlangan" }];
+  }
+
+  // CEOs can set any status
+  if (props.user.role === "ceo") {
+    return [
+      ...baseOptions,
+      { value: "waiting", label: "Bino inshoatga yuborish" },
+      { value: "accepted", label: "Tasdiqlangan" },
+    ];
+  }
+
+  // Regular users can only see basic options
+  return baseOptions;
+});
 
 // Get today's date in YYYY-MM-DD format
 const today = new Date().toISOString().split("T")[0];
@@ -109,10 +143,12 @@ const getFileIcon = (fileType) => {
 
 const getStatusBadge = (status) => {
   switch (status) {
-    case "approved":
+    case "accepted":
       return { variant: "success", icon: CheckCircle, text: "Tasdiqlangan" };
     case "rejected":
       return { variant: "destructive", icon: XCircle, text: "Rad etilgan" };
+    case "waiting":
+      return { variant: "secondary", icon: Clock, text: "Bino inshoatga yuborildi" };
     default:
       return { variant: "secondary", icon: Clock, text: "Kutilmoqda" };
   }
@@ -185,7 +221,7 @@ const handleFileSelect = (event) => {
     feedbackFiles.value = [...feedbackFiles.value, ...files];
     // Reset input to allow selecting the same files again if needed
     if (fileInput.value) {
-      fileInput.value.value = '';
+      fileInput.value.value = "";
     }
   }
 };
@@ -197,7 +233,7 @@ const removeFeedbackFile = (index) => {
 const clearAllFiles = () => {
   feedbackFiles.value = [];
   if (fileInput.value) {
-    fileInput.value.value = '';
+    fileInput.value.value = "";
   }
 };
 
@@ -205,26 +241,22 @@ const updateStatus = () => {
   if (!selectedFile.value) return;
 
   const formData = new FormData();
-  formData.append('status', newStatus.value);
-  formData.append('admin_notes', adminNotes.value);
-  
+  formData.append("status", newStatus.value);
+  formData.append("admin_notes", adminNotes.value);
+
   // Append multiple feedback files
   feedbackFiles.value.forEach((file, index) => {
     formData.append(`feedback_files[${index}]`, file);
   });
 
-  router.post(
-    `/files/${selectedFile.value.id}/status`,
-    formData,
-    {
-      forceFormData: true,
-      onSuccess: () => {
-        statusDialogOpen.value = false;
-        selectedFile.value = null;
-        feedbackFiles.value = [];
-      },
-    }
-  );
+  router.post(`/files/${selectedFile.value.id}/status`, formData, {
+    forceFormData: true,
+    onSuccess: () => {
+      statusDialogOpen.value = false;
+      selectedFile.value = null;
+      feedbackFiles.value = [];
+    },
+  });
 };
 
 const deleteFile = (file) => {
@@ -265,10 +297,10 @@ const deleteFile = (file) => {
           </div>
           <div
             class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer hover:bg-accent/50 transition-colors"
-            @click="filterByStatus('approved')"
+            @click="filterByStatus('accepted')"
           >
             <CheckCircle class="h-4 w-4 text-green-600" />
-            <span class="font-medium text-green-600">{{ stats.approved }}</span>
+            <span class="font-medium text-green-600">{{ stats.accepted }}</span>
             <span class="text-muted-foreground">Tasdiqlangan</span>
           </div>
           <div
@@ -318,9 +350,13 @@ const deleteFile = (file) => {
                   class="w-full mt-1 px-3 py-2 border rounded-md text-sm"
                 >
                   <option value="all">Barchasi</option>
-                  <option value="pending">Kutilmoqda</option>
-                  <option value="approved">Tasdiqlangan</option>
-                  <option value="rejected">Rad etilgan</option>
+                  <option
+                    v-for="option in statusOptions"
+                    :key="option.value"
+                    :value="option.value"
+                  >
+                    {{ option.label }}
+                  </option>
                 </select>
               </div>
 
@@ -520,9 +556,13 @@ const deleteFile = (file) => {
               v-model="newStatus"
               class="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="pending">Kutilmoqda</option>
-              <option value="approved">Tasdiqlangan</option>
-              <option value="rejected">Rad etilgan</option>
+              <option
+                v-for="option in statusOptions"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </option>
             </select>
           </div>
 
@@ -557,7 +597,7 @@ const deleteFile = (file) => {
                   <Upload class="mr-2 h-4 w-4" />
                   Fayl tanlash
                 </Button>
-                
+
                 <Button
                   v-if="feedbackFiles.length > 0"
                   type="button"
@@ -569,14 +609,17 @@ const deleteFile = (file) => {
                   Barchasini o'chirish
                 </Button>
               </div>
-              
+
               <div v-if="feedbackFiles.length > 0" class="space-y-2">
-                <div 
-                  v-for="(file, index) in feedbackFiles" 
+                <div
+                  v-for="(file, index) in feedbackFiles"
                   :key="index"
                   class="flex items-center gap-2 p-2 bg-muted rounded-md"
                 >
-                  <component :is="getFileIcon('document')" class="h-4 w-4 text-muted-foreground" />
+                  <component
+                    :is="getFileIcon('document')"
+                    class="h-4 w-4 text-muted-foreground"
+                  />
                   <span class="text-sm flex-1">{{ file.name }}</span>
                   <span class="text-xs text-muted-foreground">
                     {{ (file.size / 1024 / 1024).toFixed(1) }}MB
@@ -591,11 +634,12 @@ const deleteFile = (file) => {
                   </Button>
                 </div>
               </div>
-              
+
               <p class="text-xs text-muted-foreground">
-                {{ feedbackFiles.length > 0 
-                  ? `${feedbackFiles.length} fayl tanlandi. Bu fayllar foydalanuvchiga Telegram orqali yuboriladi.`
-                  : 'Bu fayllar foydalanuvchiga Telegram orqali yuboriladi (bir nechta fayl tanlash mumkin)'
+                {{
+                  feedbackFiles.length > 0
+                    ? `${feedbackFiles.length} fayl tanlandi. Bu fayllar foydalanuvchiga Telegram orqali yuboriladi.`
+                    : "Bu fayllar foydalanuvchiga Telegram orqali yuboriladi (bir nechta fayl tanlash mumkin)"
                 }}
               </p>
             </div>

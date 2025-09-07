@@ -24,7 +24,7 @@ it('can access edit user page as ceo', function () {
         ->get(route('users.edit', $this->testUser))
         ->assertOk()
         ->assertInertia(
-            fn ($page) => $page
+            fn($page) => $page
                 ->component('Users/Edit')
                 ->has('user')
                 ->has('roles')
@@ -127,7 +127,7 @@ it('can update user with new password', function () {
 it('validates required fields', function () {
     $this->actingAs($this->ceo)
         ->put(route('users.update', $this->testUser), [])
-        ->assertSessionHasErrors(['name', 'email', 'role']);
+        ->assertSessionHasErrors(['name', 'email']);
 });
 
 it('validates email format and uniqueness', function () {

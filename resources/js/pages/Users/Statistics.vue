@@ -1,207 +1,171 @@
-<script setup>
-import AppLayout from '@/layouts/AppLayout.vue'
-import { Head, Link } from '@inertiajs/vue3'
-import { ref, onMounted } from 'vue'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
-import { ArrowLeft, Users, BarChart3, RefreshCw, UserCheck, UserX, UserPlus, Crown } from 'lucide-vue-next'
-
-const props = defineProps({
-  statistics: Object,
-})
-
-const stats = ref(props.statistics)
-
-const fetchStatistics = async () => {
-  try {
-    const response = await fetch('/users/statistics')
-    const data = await response.json()
-    stats.value = data
-  } catch (error) {
-    console.error('Error fetching statistics:', error)
-  }
-}
-
-onMounted(() => {
-  fetchStatistics()
-})
-
-const getRoleColor = (role) => {
-  const colors = {
-    user: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
-    checker: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    registrator: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    ceo: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-  }
-  return colors[role] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-}
-
-const getRoleIcon = (role) => {
-  const icons = {
-    user: UserPlus,
-    checker: UserCheck,
-    registrator: UserX,
-    ceo: Crown,
-  }
-  return icons[role] || UserPlus
-}
-</script>
-
 <template>
   <AppLayout>
-    <Head title="User Statistics" />
-
     <div class="space-y-6">
       <!-- Header -->
       <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-4">
-          <Button variant="ghost" size="sm" as-child>
-            <Link href="/users">
-              <ArrowLeft class="mr-2 h-4 w-4" />
-              Back to Users
-            </Link>
-          </Button>
-          <div>
-            <h1 class="text-3xl font-bold tracking-tight">User Statistics</h1>
-            <p class="text-muted-foreground">Overview of user activity and distribution</p>
-          </div>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+            Foydalanuvchi statistikasi
+          </h1>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Tizimdagi foydalanuvchilar haqida batafsil ma'lumot
+          </p>
         </div>
-        <Button variant="outline" @click="fetchStatistics">
-          <RefreshCw class="mr-2 h-4 w-4" />
-          Refresh
-        </Button>
+        <Link
+          :href="route('users.index')"
+          class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        >
+          <ArrowLeftIcon class="w-4 h-4 mr-2" />
+          Orqaga
+        </Link>
       </div>
 
       <!-- Statistics Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <!-- Total Users -->
-        <Card>
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">Total Users</CardTitle>
-            <Users class="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div class="text-2xl font-bold">{{ stats?.total_users || 0 }}</div>
-            <p class="text-xs text-muted-foreground">Registered users</p>
-          </CardContent>
-        </Card>
+        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <UsersIcon class="h-6 w-6 text-gray-400" />
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+                    Jami foydalanuvchilar
+                  </dt>
+                  <dd class="text-lg font-medium text-gray-900 dark:text-white">
+                    {{ stats.total_users }}
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- Users by Role -->
-        <Card
-          v-for="(count, role) in stats?.users_by_role"
+        <div
+          v-for="(count, role) in stats.users_by_role"
           :key="role"
+          class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg"
         >
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">
-              {{ role.charAt(0).toUpperCase() + role.slice(1) }}s
-            </CardTitle>
-            <component :is="getRoleIcon(role)" class="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div class="text-2xl font-bold">{{ count }}</div>
-            <p class="text-xs text-muted-foreground">
-              {{ stats?.total_users ? Math.round((count / stats.total_users) * 100) : 0 }}% of total
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <!-- Role Distribution and Recent Users -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Role Distribution -->
-        <Card>
-          <CardHeader>
-            <CardTitle>Role Distribution</CardTitle>
-            <CardDescription>Breakdown of users by role</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div class="space-y-4">
-              <div
-                v-for="(count, role) in stats?.users_by_role"
-                :key="role"
-                class="flex items-center justify-between"
-              >
-                <div class="flex items-center space-x-3">
-                  <Badge :class="getRoleColor(role)">
-                    {{ role.charAt(0).toUpperCase() + role.slice(1) }}
-                  </Badge>
-                  <span class="text-sm font-medium">{{ count }} users</span>
-                </div>
-                <div class="text-sm text-muted-foreground">
-                  {{ stats?.total_users ? Math.round((count / stats.total_users) * 100) : 0 }}%
-                </div>
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0">
+                <UserIcon class="h-6 w-6 text-gray-400" />
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+                    {{ getRoleLabel(role) }}
+                  </dt>
+                  <dd class="text-lg font-medium text-gray-900 dark:text-white">
+                    {{ count }}
+                  </dd>
+                </dl>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+      </div>
 
-        <!-- Recent Users -->
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Users</CardTitle>
-            <CardDescription>Latest registered users</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div class="space-y-4">
-              <div
-                v-for="user in stats?.recent_users"
-                :key="user.id"
-                class="flex items-center justify-between"
-              >
-                <div class="flex items-center space-x-3">
-                  <Avatar class="h-8 w-8">
-                    <AvatarImage :src="user.avatar" :alt="user.name" />
-                    <AvatarFallback class="text-xs">{{ user.name.charAt(0).toUpperCase() }}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p class="text-sm font-medium">{{ user.name }}</p>
-                    <p class="text-xs text-muted-foreground">{{ user.email }}</p>
+      <!-- Recent Users -->
+      <div class="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
+        <div class="px-4 py-5 sm:px-6">
+          <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+            So'nggi foydalanuvchilar
+          </h3>
+          <p class="mt-1 max-w-2xl text-sm text-gray-500 dark:text-gray-400">
+            Tizimga qo'shilgan so'nggi foydalanuvchilar ro'yxati
+          </p>
+        </div>
+        <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+          <li
+            v-for="user in stats.recent_users"
+            :key="user.id"
+            class="px-4 py-4 sm:px-6"
+          >
+            <div class="flex items-center justify-between">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 h-10 w-10">
+                  <div class="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      {{ user.name.charAt(0).toUpperCase() }}
+                    </span>
                   </div>
                 </div>
-                <div class="flex items-center space-x-2">
-                  <Badge :class="getRoleColor(user.role)" class="text-xs">
-                    {{ user.role.charAt(0).toUpperCase() + user.role.slice(1) }}
-                  </Badge>
-                  <span class="text-xs text-muted-foreground">
-                    {{ new Date(user.created_at).toLocaleDateString() }}
-                  </span>
+                <div class="ml-4">
+                  <div class="text-sm font-medium text-gray-900 dark:text-white">
+                    {{ user.name }}
+                  </div>
+                  <div class="text-sm text-gray-500 dark:text-gray-400">
+                    {{ user.email }}
+                  </div>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  :class="getRoleBadgeClass(user.role)"
+                >
+                  {{ getRoleLabel(user.role) }}
+                </span>
+                <div class="text-sm text-gray-500 dark:text-gray-400">
+                  {{ formatDate(user.created_at) }}
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </li>
+        </ul>
       </div>
-
-      <!-- Quick Actions -->
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Common administrative tasks</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div class="flex flex-wrap gap-4">
-            <Button as-child>
-              <Link href="/users">
-                <Users class="mr-2 h-4 w-4" />
-                Manage Users
-              </Link>
-            </Button>
-            <Button variant="outline" as-child>
-              <Link href="/approval/analytics">
-                <BarChart3 class="mr-2 h-4 w-4" />
-                File Analytics
-              </Link>
-            </Button>
-            <Button variant="outline" @click="fetchStatistics">
-              <RefreshCw class="mr-2 h-4 w-4" />
-              Refresh Data
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   </AppLayout>
 </template>
+
+<script setup>
+import { computed } from 'vue'
+import { Link } from '@inertiajs/vue3'
+import AppLayout from '@/layouts/AppLayout.vue'
+import {
+  ArrowLeftIcon,
+  UsersIcon,
+  UserIcon,
+} from '@heroicons/vue/24/outline'
+
+const props = defineProps({
+  stats: {
+    type: Object,
+    required: true,
+  },
+})
+
+const getRoleLabel = (role) => {
+  const labels = {
+    user: 'Foydalanuvchi',
+    checker: 'Tekshiruvchi',
+    registrator: 'Ro\'yxatga oluvchi',
+    ceo: 'Rahbar',
+  }
+  return labels[role] || role
+}
+
+const getRoleBadgeClass = (role) => {
+  const classes = {
+    user: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+    checker: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+    registrator: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+    ceo: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
+  }
+  return classes[role] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+}
+
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString('uz-UZ', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+</script>

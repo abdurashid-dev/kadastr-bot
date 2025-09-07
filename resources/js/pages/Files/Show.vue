@@ -73,7 +73,7 @@ const getFileIcon = (fileType) => {
 
 const getStatusBadge = (status) => {
   switch (status) {
-    case "approved":
+    case "accepted":
       return {
         variant: "success",
         icon: CheckCircle,
@@ -316,7 +316,7 @@ const deleteFile = () => {
               class="w-full mt-1 px-3 py-2 border rounded-md"
             >
               <option value="pending">Kutilmoqda</option>
-              <option value="approved">Tasdiqlangan</option>
+              <option value="accepted">Tasdiqlangan</option>
               <option value="rejected">Rad etilgan</option>
             </select>
           </div>

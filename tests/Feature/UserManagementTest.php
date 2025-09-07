@@ -49,8 +49,7 @@ describe('User Management', function () {
 
             $response->assertSuccessful();
             $response->assertInertia(
-                fn($page) =>
-                $page->component('Users/Index')
+                fn($page) => $page->component('Users/Index')
                     ->has('users')
                     ->has('filters')
             );
@@ -90,10 +89,10 @@ describe('User Management', function () {
     describe('Role assignment', function () {
         it('allows CEOs to update user roles', function () {
             $response = $this->actingAs($this->ceo)
-                ->putJson("/users/{$this->user->id}/role", ['role' => 'checker']);
+                ->put("/users/{$this->user->id}/role", ['role' => 'checker']);
 
-            $response->assertSuccessful();
-            $response->assertJson(['message' => 'User role updated successfully']);
+            $response->assertRedirect(route('users.index'));
+            $response->assertSessionHas('success', 'User role updated successfully');
 
             $this->user->refresh();
             expect($this->user->role)->toBe('checker');
@@ -101,39 +100,40 @@ describe('User Management', function () {
 
         it('prevents non-CEOs from updating user roles', function () {
             $response = $this->actingAs($this->registrator)
-                ->putJson("/users/{$this->user->id}/role", ['role' => 'checker']);
+                ->put("/users/{$this->user->id}/role", ['role' => 'checker']);
 
             $response->assertForbidden();
         });
 
         it('validates role values', function () {
             $response = $this->actingAs($this->ceo)
-                ->putJson("/users/{$this->user->id}/role", ['role' => 'invalid_role']);
+                ->put("/users/{$this->user->id}/role", ['role' => 'invalid_role']);
 
-            $response->assertStatus(422);
+            $response->assertRedirect();
+            $response->assertSessionHasErrors(['role']);
         });
 
         it('prevents changing role of the last CEO', function () {
             $response = $this->actingAs($this->ceo)
-                ->putJson("/users/{$this->ceo->id}/role", ['role' => 'user']);
+                ->put("/users/{$this->ceo->id}/role", ['role' => 'user']);
 
-            $response->assertStatus(422);
-            $response->assertJson(['message' => 'Cannot change role of the last CEO']);
+            $response->assertRedirect(route('users.index'));
+            $response->assertSessionHas('error', 'Cannot change role of the last CEO');
         });
     });
 
     describe('User profile updates', function () {
         it('allows users to update their own profile', function () {
             $response = $this->actingAs($this->user)
-                ->putJson("/users/{$this->user->id}", [
+                ->put("/users/{$this->user->id}", [
                     'name' => 'Updated Name',
                     'email' => 'updated@example.com',
                     'phone_number' => '+1234567890',
                     'region' => 'Updated Region',
                 ]);
 
-            $response->assertSuccessful();
-            $response->assertJson(['message' => 'User updated successfully']);
+            $response->assertRedirect(route('users.index'));
+            $response->assertSessionHas('success', 'User updated successfully');
 
             $this->user->refresh();
             expect($this->user->name)->toBe('Updated Name');
@@ -142,12 +142,13 @@ describe('User Management', function () {
 
         it('allows CEOs to update any user profile', function () {
             $response = $this->actingAs($this->ceo)
-                ->putJson("/users/{$this->user->id}", [
+                ->put("/users/{$this->user->id}", [
                     'name' => 'CEO Updated Name',
                     'email' => 'ceo-updated@example.com',
                 ]);
 
-            $response->assertSuccessful();
+            $response->assertRedirect(route('users.index'));
+            $response->assertSessionHas('success', 'User updated successfully');
 
             $this->user->refresh();
             expect($this->user->name)->toBe('CEO Updated Name');
@@ -167,36 +168,37 @@ describe('User Management', function () {
 
         it('allows same user to keep their email', function () {
             $response = $this->actingAs($this->user)
-                ->putJson("/users/{$this->user->id}", [
+                ->put("/users/{$this->user->id}", [
                     'name' => 'Updated Name',
                     'email' => $this->user->email, // Same email
                 ]);
 
-            $response->assertSuccessful();
+            $response->assertRedirect(route('users.index'));
+            $response->assertSessionHas('success', 'User updated successfully');
         });
     });
 
     describe('User deletion', function () {
         it('allows CEOs to delete users', function () {
             $response = $this->actingAs($this->ceo)
-                ->deleteJson("/users/{$this->user->id}");
+                ->delete("/users/{$this->user->id}");
 
-            $response->assertSuccessful();
-            $response->assertJson(['message' => 'User deleted successfully']);
+            $response->assertRedirect(route('users.index'));
+            $response->assertSessionHas('success', 'User deleted successfully');
 
             $this->assertDatabaseMissing('users', ['id' => $this->user->id]);
         });
 
         it('prevents non-CEOs from deleting users', function () {
             $response = $this->actingAs($this->registrator)
-                ->deleteJson("/users/{$this->user->id}");
+                ->delete("/users/{$this->user->id}");
 
             $response->assertForbidden();
         });
 
         it('prevents users from deleting themselves', function () {
             $response = $this->actingAs($this->user)
-                ->deleteJson("/users/{$this->user->id}");
+                ->delete("/users/{$this->user->id}");
 
             $response->assertForbidden();
         });
@@ -206,14 +208,14 @@ describe('User Management', function () {
             $anotherCeo = User::factory()->ceo()->create();
 
             // Delete the other CEO
-            $this->actingAs($this->ceo)->deleteJson("/users/{$anotherCeo->id}");
+            $this->actingAs($this->ceo)->delete("/users/{$anotherCeo->id}");
 
             // Now try to delete the last CEO
             $response = $this->actingAs($this->ceo)
-                ->deleteJson("/users/{$this->ceo->id}");
+                ->delete("/users/{$this->ceo->id}");
 
-            $response->assertStatus(422);
-            $response->assertJson(['message' => 'Cannot delete the last CEO user']);
+            $response->assertRedirect(route('users.index'));
+            $response->assertSessionHas('error', 'Cannot delete the last CEO user');
         });
     });
 
@@ -222,17 +224,21 @@ describe('User Management', function () {
             $response = $this->actingAs($this->ceo)->get('/users/statistics');
 
             $response->assertSuccessful();
-            $response->assertJsonStructure([
-                'total_users',
-                'users_by_role',
-                'recent_users',
-            ]);
+            $response->assertInertia(
+                fn($page) => $page
+                    ->component('Users/Statistics')
+                    ->has('stats')
+                    ->has('stats.total_users')
+                    ->has('stats.users_by_role')
+                    ->has('stats.recent_users')
+            );
         });
 
         it('allows registrators to view user statistics', function () {
             $response = $this->actingAs($this->registrator)->get('/users/statistics');
 
             $response->assertSuccessful();
+            $response->assertInertia(fn($page) => $page->component('Users/Statistics'));
         });
 
         it('prevents other roles from viewing user statistics', function () {
@@ -249,15 +255,15 @@ describe('User Management', function () {
             $response = $this->actingAs($this->ceo)->get('/users/statistics');
 
             $response->assertSuccessful();
-            $response->assertJson([
-                'total_users' => 6, // ceo, registrator, checker, user, + 2 new users
-                'users_by_role' => [
-                    'user' => 3,
-                    'checker' => 1,
-                    'registrator' => 1,
-                    'ceo' => 1,
-                ],
-            ]);
+            $response->assertInertia(
+                fn($page) => $page
+                    ->component('Users/Statistics')
+                    ->where('stats.total_users', 6) // ceo, registrator, checker, user, + 2 new users
+                    ->where('stats.users_by_role.user', 3)
+                    ->where('stats.users_by_role.checker', 1)
+                    ->where('stats.users_by_role.registrator', 1)
+                    ->where('stats.users_by_role.ceo', 1)
+            );
         });
     });
 });

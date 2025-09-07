@@ -86,9 +86,11 @@ class FilesController extends Controller
             'stats' => [
                 'total' => UploadedFile::count(),
                 'pending' => UploadedFile::where('status', 'pending')->count(),
-                'approved' => UploadedFile::where('status', 'approved')->count(),
+                'waiting' => UploadedFile::where('status', 'waiting')->count(),
+                'accepted' => UploadedFile::where('status', 'accepted')->count(),
                 'rejected' => UploadedFile::where('status', 'rejected')->count(),
-            ]
+            ],
+            'user' => $request->user(),
         ]);
     }
 
@@ -97,23 +99,23 @@ class FilesController extends Controller
         $file->load('user');
 
         return Inertia::render('Files/Show', [
-            'file' => $file
+            'file' => $file,
         ]);
     }
 
     public function updateStatus(Request $request, UploadedFile $file)
     {
         $request->validate([
-            'status' => 'required|in:pending,approved,rejected',
+            'status' => 'required|in:pending,waiting,accepted,rejected',
             'admin_notes' => 'nullable|string|max:1000',
-            'feedback_files.*' => 'nullable|file|max:20480' // 20MB max per file
+            'feedback_files.*' => 'nullable|file|max:20480', // 20MB max per file
         ]);
 
         $oldStatus = $file->status;
 
         $file->update([
             'status' => $request->status,
-            'admin_notes' => $request->admin_notes
+            'admin_notes' => $request->admin_notes,
         ]);
 
         // Handle multiple feedback files upload if provided
@@ -140,28 +142,30 @@ class FilesController extends Controller
             // Get bot token from database
             $bot = TelegraphBot::first();
 
-            if (!$bot || !$bot->token || !$file->user->telegram_id) {
+            if (! $bot || ! $bot->token || ! $file->user->telegram_id) {
                 Log::warning('Cannot send status notification', [
                     'file_id' => $file->id,
                     'user_id' => $file->user->id,
-                    'has_bot' => !empty($bot),
-                    'has_telegram_id' => !empty($file->user->telegram_id)
+                    'has_bot' => ! empty($bot),
+                    'has_telegram_id' => ! empty($file->user->telegram_id),
                 ]);
+
                 return;
             }
 
             // Prepare status message in Uzbek
             $statusText = match ($newStatus) {
-                'approved' => '✅ <b>Tasdiqlandi</b>',
+                'accepted' => '✅ <b>Tasdiqlandi</b>',
                 'rejected' => '❌ <b>Rad etildi</b>',
                 'pending' => '⏳ <b>Kutilmoqda</b>',
+                'waiting' => '⏳ <b>Kutilmoqda</b>',
                 default => '📄 <b>Yangilandi</b>'
             };
 
-            $message = "<b>📁 Fayl holati yangilandi!</b>\n\n" .
-                "<b>Fayl nomi:</b> {$file->name}\n" .
-                "<b>Asl fayl:</b> {$file->original_filename}\n" .
-                "<b>Yangi holat:</b> {$statusText}\n" .
+            $message = "<b>📁 Fayl holati yangilandi!</b>\n\n".
+                "<b>Fayl nomi:</b> {$file->name}\n".
+                "<b>Asl fayl:</b> {$file->original_filename}\n".
+                "<b>Yangi holat:</b> {$statusText}\n".
                 "<b>Fayl ID:</b> #{$file->id}";
 
             if ($adminNotes) {
@@ -174,11 +178,11 @@ class FilesController extends Controller
             $response = Http::timeout(30)->post("https://api.telegram.org/bot{$bot->token}/sendMessage", [
                 'chat_id' => $file->user->telegram_id,
                 'text' => $message,
-                'parse_mode' => 'HTML'
+                'parse_mode' => 'HTML',
             ]);
 
             // Send feedback files if provided
-            if (!empty($feedbackFilePaths) && $response->successful()) {
+            if (! empty($feedbackFilePaths) && $response->successful()) {
                 foreach ($feedbackFilePaths as $feedbackFilePath) {
                     $this->sendFeedbackFile($bot->token, $file->user->telegram_id, $feedbackFilePath);
                     // Add a small delay between files to avoid rate limiting
@@ -191,21 +195,21 @@ class FilesController extends Controller
                     'file_id' => $file->id,
                     'user_id' => $file->user->id,
                     'new_status' => $newStatus,
-                    'feedback_files_count' => count($feedbackFilePaths)
+                    'feedback_files_count' => count($feedbackFilePaths),
                 ]);
             } else {
                 Log::error('Failed to send status notification', [
                     'file_id' => $file->id,
                     'user_id' => $file->user->id,
                     'response_status' => $response->status(),
-                    'response_body' => $response->body()
+                    'response_body' => $response->body(),
                 ]);
             }
         } catch (\Exception $e) {
             Log::error('Error sending status notification', [
                 'file_id' => $file->id,
                 'user_id' => $file->user->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -213,10 +217,11 @@ class FilesController extends Controller
     private function sendFeedbackFile(string $botToken, string $chatId, string $filePath)
     {
         try {
-            $fullPath = storage_path('app/public/' . $filePath);
+            $fullPath = storage_path('app/public/'.$filePath);
 
-            if (!file_exists($fullPath)) {
+            if (! file_exists($fullPath)) {
                 Log::error('Feedback file not found', ['path' => $fullPath]);
+
                 return;
             }
 
@@ -247,14 +252,14 @@ class FilesController extends Controller
             )->post("https://api.telegram.org/bot{$botToken}/{$method}", [
                 'chat_id' => $chatId,
                 'caption' => '📎 <b>Admin javob fayli</b>',
-                'parse_mode' => 'HTML'
+                'parse_mode' => 'HTML',
             ]);
 
             if ($response->successful()) {
                 Log::info('Feedback file sent successfully', [
                     'file_path' => $filePath,
                     'chat_id' => $chatId,
-                    'method' => $method
+                    'method' => $method,
                 ]);
 
                 // Clean up the file after sending
@@ -263,13 +268,13 @@ class FilesController extends Controller
                 Log::error('Failed to send feedback file', [
                     'file_path' => $filePath,
                     'response_status' => $response->status(),
-                    'response_body' => $response->body()
+                    'response_body' => $response->body(),
                 ]);
             }
         } catch (\Exception $e) {
             Log::error('Error sending feedback file', [
                 'file_path' => $filePath,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -280,11 +285,11 @@ class FilesController extends Controller
             // Get the bot token from database
             $bot = TelegraphBot::first();
 
-            if (!$file->telegram_file_id) {
+            if (! $file->telegram_file_id) {
                 return redirect()->back()->with('error', 'File not available for download.');
             }
 
-            if (!$bot || !$bot->token) {
+            if (! $bot || ! $bot->token) {
                 return redirect()->back()->with('error', 'Bot configuration error.');
             }
 
@@ -292,21 +297,23 @@ class FilesController extends Controller
 
             // Get file info from Telegram
             $fileInfoResponse = Http::timeout(30)->get("https://api.telegram.org/bot{$botToken}/getFile", [
-                'file_id' => $file->telegram_file_id
+                'file_id' => $file->telegram_file_id,
             ]);
 
-            if (!$fileInfoResponse->successful()) {
+            if (! $fileInfoResponse->successful()) {
                 Log::error('Failed to get file info from Telegram', [
                     'file_id' => $file->id,
-                    'status' => $fileInfoResponse->status()
+                    'status' => $fileInfoResponse->status(),
                 ]);
+
                 return redirect()->back()->with('error', 'Could not retrieve file from Telegram.');
             }
 
             $fileInfo = $fileInfoResponse->json();
 
-            if (!isset($fileInfo['result']['file_path'])) {
+            if (! isset($fileInfo['result']['file_path'])) {
                 Log::error('No file_path in Telegram response', ['file_id' => $file->id]);
+
                 return redirect()->back()->with('error', 'File path not available.');
             }
 
@@ -315,11 +322,12 @@ class FilesController extends Controller
             // Download file from Telegram
             $fileResponse = Http::timeout(60)->get("https://api.telegram.org/file/bot{$botToken}/{$filePath}");
 
-            if (!$fileResponse->successful()) {
+            if (! $fileResponse->successful()) {
                 Log::error('Failed to download file from Telegram', [
                     'file_id' => $file->id,
-                    'status' => $fileResponse->status()
+                    'status' => $fileResponse->status(),
                 ]);
+
                 return redirect()->back()->with('error', 'Could not download file from Telegram.');
             }
 
@@ -327,6 +335,7 @@ class FilesController extends Controller
 
             if (empty($fileContent)) {
                 Log::error('Empty file content received', ['file_id' => $file->id]);
+
                 return redirect()->back()->with('error', 'File content is empty.');
             }
 
@@ -336,7 +345,7 @@ class FilesController extends Controller
             // Return file as download
             return response($fileContent)
                 ->header('Content-Type', $file->mime_type ?: 'application/octet-stream')
-                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                ->header('Content-Disposition', 'attachment; filename="'.$filename.'"')
                 ->header('Content-Length', strlen($fileContent))
                 ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
                 ->header('Pragma', 'no-cache')
@@ -344,7 +353,7 @@ class FilesController extends Controller
         } catch (\Exception $e) {
             Log::error('File download failed', [
                 'file_id' => $file->id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
 
             return redirect()->back()->with('error', 'Failed to download file. Please try again.');
