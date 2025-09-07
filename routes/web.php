@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\FileApprovalController;
 use App\Http\Controllers\FilesController;
+use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -9,6 +10,9 @@ use Inertia\Inertia;
 Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');
+
+// Language switching route
+Route::post('/language', [LanguageController::class, 'changeLanguage'])->name('language.change');
 
 Route::get('dashboard', function () {
     $user = request()->user();
