@@ -11,8 +11,41 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('dashboard', function () {
+    $user = request()->user();
+
+    // Get file statistics
+    $fileStats = [
+        'total_files' => \App\Models\UploadedFile::count(),
+        'files_by_status' => \App\Models\UploadedFile::selectRaw('status, count(*) as count')
+            ->groupBy('status')
+            ->pluck('count', 'status'),
+        'files_by_region' => \App\Models\UploadedFile::join('users', 'uploaded_files.user_id', '=', 'users.id')
+            ->selectRaw('users.region, count(*) as count')
+            ->groupBy('users.region')
+            ->pluck('count', 'region'),
+        'files_by_type' => \App\Models\UploadedFile::selectRaw('file_type, count(*) as count')
+            ->groupBy('file_type')
+            ->pluck('count', 'file_type'),
+        'recent_files' => \App\Models\UploadedFile::with('user')
+            ->latest()
+            ->limit(5)
+            ->get(['id', 'name', 'status', 'file_type', 'created_at', 'user_id']),
+        'monthly_stats' => \App\Models\UploadedFile::selectRaw(
+            \DB::getDriverName() === 'sqlite'
+                ? 'strftime("%Y-%m", created_at) as month, count(*) as count'
+                : (\DB::getDriverName() === 'pgsql'
+                    ? 'to_char(created_at, \'YYYY-MM\') as month, count(*) as count'
+                    : 'DATE_FORMAT(created_at, "%Y-%m") as month, count(*) as count')
+        )
+            ->where('created_at', '>=', now()->subMonths(6))
+            ->groupBy('month')
+            ->orderBy('month')
+            ->pluck('count', 'month'),
+    ];
+
     return Inertia::render('Dashboard', [
-        'user' => request()->user(),
+        'user' => $user,
+        'fileStats' => $fileStats,
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -58,5 +91,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';
