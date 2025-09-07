@@ -1,7 +1,7 @@
 <?php
 
-use App\Http\Controllers\FilesController;
 use App\Http\Controllers\FileApprovalController;
+use App\Http\Controllers\FilesController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -12,7 +12,7 @@ Route::get('/', function () {
 
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard', [
-        'user' => request()->user()
+        'user' => request()->user(),
     ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -47,13 +47,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // User Management Routes
     Route::prefix('users')->name('users.')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('index');
+        Route::get('create', [UserController::class, 'create'])->name('create');
+        Route::post('/', [UserController::class, 'store'])->name('store');
+        Route::get('{user}/edit', [UserController::class, 'edit'])->name('edit');
+        Route::put('{user}', [UserController::class, 'update'])->name('update');
         Route::get('statistics', [UserController::class, 'statistics'])->name('statistics');
         Route::get('{user}', [UserController::class, 'show'])->name('show');
-        Route::put('{user}', [UserController::class, 'update'])->name('update');
         Route::put('{user}/role', [UserController::class, 'updateRole'])->name('update-role');
         Route::delete('{user}', [UserController::class, 'destroy'])->name('destroy');
     });
 });
 
-require __DIR__ . '/settings.php';
-require __DIR__ . '/auth.php';
+require __DIR__.'/settings.php';
+require __DIR__.'/auth.php';

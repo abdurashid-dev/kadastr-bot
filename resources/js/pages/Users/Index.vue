@@ -1,153 +1,367 @@
 <script setup>
-import AppLayout from '@/layouts/AppLayout.vue'
-import { Head, Link, router } from '@inertiajs/vue3'
-import { ref, watch } from 'vue'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { MoreHorizontal, Users, BarChart3, Search, Filter, X } from 'lucide-vue-next'
+import AppLayout from "@/layouts/AppLayout.vue";
+import { Head, Link, router } from "@inertiajs/vue3";
+import { ref, watch } from "vue";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  MoreHorizontal,
+  Users,
+  BarChart3,
+  Search,
+  Filter,
+  X,
+  CheckCircle,
+  AlertCircle,
+  Trash2,
+  Eye,
+  UserCheck,
+  Crown,
+  Shield,
+  User,
+  Edit,
+} from "lucide-vue-next";
 
 const props = defineProps({
-  users: Object,
-  filters: Object,
-  roles: Array,
-})
+  users: {
+    type: Object,
+    default: () => ({ data: [], total: 0, links: null }),
+  },
+  filters: {
+    type: Object,
+    default: () => ({}),
+  },
+  roles: {
+    type: Array,
+    default: () => [],
+  },
+  flash: {
+    type: Object,
+    default: () => ({}),
+  },
+});
 
-const search = ref(props.filters.search || '')
-const roleFilter = ref(props.filters.role || '')
+// Simple reactive state
+const searchInput = ref(props.filters?.search || "");
+const selectedRole = ref(props.filters?.role || "all");
+const successMessage = ref(props.flash?.success || "");
+const errorMessage = ref("");
 
-// Simple debounce function
+// Clear messages after 5 seconds
+if (successMessage.value) {
+  setTimeout(() => {
+    successMessage.value = "";
+  }, 5000);
+}
+
+// Debounce helper
 const debounce = (func, wait) => {
-  let timeout
+  let timeout;
   return function executedFunction(...args) {
     const later = () => {
-      clearTimeout(timeout)
-      func(...args)
-    }
-    clearTimeout(timeout)
-    timeout = setTimeout(later, wait)
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
+
+// Search function
+const performSearch = () => {
+  const searchValue = searchInput.value ? searchInput.value.trim() : "";
+  const roleValue = selectedRole.value === "all" ? "" : selectedRole.value;
+
+  const params = {};
+  if (searchValue) {
+    params.search = searchValue;
   }
-}
+  if (roleValue) {
+    params.role = roleValue;
+  }
 
-const debouncedSearch = debounce((value) => {
-  router.get('/users', { search: value, role: roleFilter.value }, {
+  router.get("/users", params, {
     preserveState: true,
     replace: true,
-  })
-}, 300)
+  });
+};
 
-watch(search, debouncedSearch)
+// Debounced search
+const debouncedSearch = debounce(performSearch, 500);
 
-const handleRoleFilter = (role) => {
-  roleFilter.value = role
-  router.get('/users', { search: search.value, role: role }, {
-    preserveState: true,
-    replace: true,
-  })
-}
+// Watch for search input changes
+watch(searchInput, () => {
+  debouncedSearch();
+});
+
+const handleRoleChange = (role) => {
+  selectedRole.value = role;
+  performSearch();
+};
 
 const clearFilters = () => {
-  search.value = ''
-  roleFilter.value = ''
-  router.get('/users', {}, {
-    preserveState: true,
-    replace: true,
-  })
-}
+  searchInput.value = "";
+  selectedRole.value = "all";
+  performSearch();
+};
 
-const updateUserRole = async (user, newRole) => {
-  try {
-    await router.put(`/users/${user.id}/role`, { role: newRole }, {
-      preserveState: true,
-    })
-  } catch (error) {
-    console.error('Error updating user role:', error)
-  }
-}
+const updateUserRole = (user, newRole) => {
+  if (!user || !newRole || user.role === newRole) return;
 
-const deleteUser = async (user) => {
-  if (confirm(`Are you sure you want to delete ${user.name}?`)) {
-    try {
-      await router.delete(`/users/${user.id}`, {
-        preserveState: true,
-      })
-    } catch (error) {
-      console.error('Error deleting user:', error)
-    }
+  if (confirm(`${user.name || "Foydalanuvchi"}ning rolini o'zgartirishni xohlaysizmi?`)) {
+    router.put(
+      `/users/${user.id}/role`,
+      { role: newRole },
+      {
+        onSuccess: () => {
+          successMessage.value = `${
+            user.name || "Foydalanuvchi"
+          }ning roli muvaffaqiyatli yangilandi`;
+          setTimeout(() => {
+            successMessage.value = "";
+          }, 5000);
+        },
+        onError: (errors) => {
+          errorMessage.value = errors.role || "Rolni yangilashda xatolik yuz berdi";
+          setTimeout(() => {
+            errorMessage.value = "";
+          }, 5000);
+        },
+      }
+    );
   }
-}
+};
 
-const getRoleColor = (role) => {
-  const colors = {
-    user: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
-    checker: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    registrator: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    ceo: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+const deleteUser = (user) => {
+  if (!user || !user.id) return;
+
+  if (confirm(`${user.name || "Foydalanuvchi"}ni o'chirishni xohlaysizmi?`)) {
+    router.delete(`/users/${user.id}`, {
+      onSuccess: () => {
+        successMessage.value = `${
+          user.name || "Foydalanuvchi"
+        } muvaffaqiyatli o'chirildi`;
+        setTimeout(() => {
+          successMessage.value = "";
+        }, 5000);
+      },
+      onError: (errors) => {
+        errorMessage.value =
+          errors.user || "Foydalanuvchini o'chirishda xatolik yuz berdi";
+        setTimeout(() => {
+          errorMessage.value = "";
+        }, 5000);
+      },
+    });
   }
-  return colors[role] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-}
+};
+
+const getRoleLabel = (role) => {
+  const labels = {
+    user: "Foydalanuvchi",
+    checker: "Tekshiruvchi",
+    registrator: "Ro'yxatga oluvchi",
+    ceo: "Rahbar",
+  };
+  return labels[role] || role;
+};
+
+const getRoleIcon = (role) => {
+  const icons = {
+    user: User,
+    checker: Shield,
+    registrator: UserCheck,
+    ceo: Crown,
+  };
+  return icons[role] || User;
+};
+
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString("uz-UZ", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
 </script>
 
 <template>
   <AppLayout>
-    <Head title="User Management" />
+    <Head title="Foydalanuvchilarni boshqarish" />
 
-    <div class="space-y-6">
+    <div class="space-y-8 px-4">
+      <!-- Success/Error Messages -->
+      <Alert
+        v-if="successMessage"
+        class="border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200"
+      >
+        <CheckCircle class="h-4 w-4" />
+        <AlertDescription>{{ successMessage }}</AlertDescription>
+      </Alert>
+
+      <Alert v-if="errorMessage" variant="destructive">
+        <AlertCircle class="h-4 w-4" />
+        <AlertDescription>{{ errorMessage }}</AlertDescription>
+      </Alert>
+
       <!-- Header -->
-      <div class="flex items-center justify-between">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 class="text-3xl font-bold tracking-tight">User Management</h1>
-          <p class="text-muted-foreground">Manage users and their roles</p>
+          <h1
+            class="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+          >
+            Foydalanuvchilarni boshqarish
+          </h1>
+          <p class="text-muted-foreground text-sm mt-1">
+            Foydalanuvchilar va ularning rollarini boshqaring
+          </p>
         </div>
         <div class="flex items-center space-x-2">
-          <Button variant="outline" as-child>
+          <Button variant="outline" as-child class="shadow-sm h-9">
             <Link href="/users/statistics">
               <BarChart3 class="mr-2 h-4 w-4" />
-              Statistics
+              Statistika
+            </Link>
+          </Button>
+          <Button as-child class="shadow-sm h-9">
+            <Link href="/users/create">
+              <User class="mr-2 h-4 w-4" />
+              Yangi foydalanuvchi
             </Link>
           </Button>
         </div>
       </div>
 
+      <!-- Stats Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card class="border-l-2 border-l-blue-500">
+          <CardContent class="p-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-medium text-muted-foreground">
+                  Jami foydalanuvchilar
+                </p>
+                <p class="text-base font-bold text-blue-600">{{ users.total || 0 }}</p>
+              </div>
+              <Users class="h-4 w-4 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card class="border-l-2 border-l-green-500">
+          <CardContent class="p-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-medium text-muted-foreground">Tekshiruvchilar</p>
+                <p class="text-base font-bold text-green-600">
+                  {{ (users.data || []).filter((u) => u.role === "checker").length }}
+                </p>
+              </div>
+              <Shield class="h-4 w-4 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card class="border-l-2 border-l-yellow-500">
+          <CardContent class="p-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-medium text-muted-foreground">
+                  Ro'yxatga oluvchilar
+                </p>
+                <p class="text-base font-bold text-yellow-600">
+                  {{ (users.data || []).filter((u) => u.role === "registrator").length }}
+                </p>
+              </div>
+              <UserCheck class="h-4 w-4 text-yellow-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card class="border-l-2 border-l-red-500">
+          <CardContent class="p-2">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-medium text-muted-foreground">Rahbarlar</p>
+                <p class="text-base font-bold text-red-600">
+                  {{ (users.data || []).filter((u) => u.role === "ceo").length }}
+                </p>
+              </div>
+              <Crown class="h-4 w-4 text-red-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <!-- Filters -->
-      <Card>
-        <CardHeader>
-          <CardTitle class="flex items-center">
+      <Card class="shadow-sm">
+        <CardHeader class="pb-4">
+          <CardTitle class="flex items-center text-lg">
             <Filter class="mr-2 h-5 w-5" />
-            Filters
+            Filtrlar
           </CardTitle>
-          <CardDescription>Search and filter users</CardDescription>
+          <CardDescription class="text-sm"
+            >Foydalanuvchilarni qidiring va filtrlash</CardDescription
+          >
         </CardHeader>
-        <CardContent>
+        <CardContent class="pt-0">
           <div class="flex flex-col sm:flex-row gap-4">
             <div class="flex-1">
               <div class="relative">
-                <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Search
+                  class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                />
                 <Input
-                  v-model="search"
-                  placeholder="Search users by name, email, or phone..."
-                  class="pl-10"
+                  v-model="searchInput"
+                  placeholder="Ism, email yoki telefon bo'yicha qidiring..."
+                  class="pl-10 h-10"
                 />
               </div>
             </div>
             <div class="flex gap-2">
-              <Select :value="roleFilter" @update:model-value="handleRoleFilter">
-                <SelectTrigger class="w-[180px]">
-                  <SelectValue placeholder="All Roles" />
+              <Select v-model="selectedRole" @update:model-value="handleRoleChange">
+                <SelectTrigger class="w-[180px] h-10">
+                  <SelectValue placeholder="Barcha rollar" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Roles</SelectItem>
+                  <SelectItem value="all">Barcha rollar</SelectItem>
                   <SelectItem v-for="role in roles" :key="role" :value="role">
-                    {{ role.charAt(0).toUpperCase() + role.slice(1) }}
+                    {{ getRoleLabel(role) }}
                   </SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" @click="clearFilters">
+              <Button variant="outline" @click="clearFilters" class="h-10 px-3">
                 <X class="h-4 w-4" />
               </Button>
             </div>
@@ -156,83 +370,145 @@ const getRoleColor = (role) => {
       </Card>
 
       <!-- Users Table -->
-      <Card>
-        <CardHeader>
-          <CardTitle class="flex items-center">
+      <Card class="shadow-sm">
+        <CardHeader class="pb-4">
+          <CardTitle class="flex items-center text-lg">
             <Users class="mr-2 h-5 w-5" />
-            Users
+            Foydalanuvchilar
           </CardTitle>
-          <CardDescription>
-            {{ users.total }} users found
+          <CardDescription class="text-sm">
+            {{ users.total || 0 }} ta foydalanuvchi topildi
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div class="rounded-md border">
+        <CardContent class="pt-0">
+          <div class="rounded-lg border overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Files</TableHead>
-                  <TableHead>Joined</TableHead>
-                  <TableHead class="w-[70px]">Actions</TableHead>
+                <TableRow class="bg-muted/50">
+                  <TableHead class="font-semibold">Foydalanuvchi</TableHead>
+                  <TableHead class="font-semibold">Rol</TableHead>
+                  <TableHead class="font-semibold">Fayllar</TableHead>
+                  <TableHead class="font-semibold">Qo'shilgan sana</TableHead>
+                  <TableHead class="w-[100px] font-semibold">Amallar</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow v-for="user in users.data" :key="user.id" class="hover:bg-muted/50">
+                <TableRow
+                  v-for="user in users.data || []"
+                  :key="user.id"
+                  class="hover:bg-muted/30 transition-colors"
+                >
                   <TableCell>
                     <div class="flex items-center space-x-3">
-                      <Avatar class="h-10 w-10">
-                        <AvatarImage :src="user.avatar" :alt="user.name" />
-                        <AvatarFallback>{{ user.name.charAt(0).toUpperCase() }}</AvatarFallback>
+                      <Avatar class="h-10 w-10 ring-2 ring-muted">
+                        <AvatarImage :src="user.avatar || ''" :alt="user.name || ''" />
+                        <AvatarFallback class="text-sm font-semibold">
+                          {{ (user.name || "U").charAt(0).toUpperCase() }}
+                        </AvatarFallback>
                       </Avatar>
-                      <div>
-                        <div class="font-medium">{{ user.name }}</div>
-                        <div class="text-sm text-muted-foreground">{{ user.email }}</div>
-                        <div v-if="user.phone_number" class="text-sm text-muted-foreground">
+                      <div class="min-w-0 flex-1">
+                        <div class="font-semibold text-foreground truncate text-sm">
+                          {{ user.name || "Noma'lum foydalanuvchi" }}
+                        </div>
+                        <div class="text-xs text-muted-foreground truncate">
+                          {{ user.email || "Email yo'q" }}
+                        </div>
+                        <div
+                          v-if="user.phone_number"
+                          class="text-xs text-muted-foreground truncate"
+                        >
                           {{ user.phone_number }}
+                        </div>
+                        <div
+                          v-if="user.region"
+                          class="text-xs text-muted-foreground truncate"
+                        >
+                          {{ user.region }}
                         </div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <Select
-                      :value="user.role"
+                      :model-value="user.role"
                       @update:model-value="updateUserRole(user, $event)"
                     >
-                      <SelectTrigger class="w-[140px]">
-                        <SelectValue />
+                      <SelectTrigger class="w-[140px] h-8">
+                        <SelectValue>
+                          <div class="flex items-center space-x-2">
+                            <component :is="getRoleIcon(user.role)" class="h-4 w-4" />
+                            <span>{{ getRoleLabel(user.role) }}</span>
+                          </div>
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="user">User</SelectItem>
-                        <SelectItem value="checker">Checker</SelectItem>
-                        <SelectItem value="registrator">Registrator</SelectItem>
-                        <SelectItem value="ceo">CEO</SelectItem>
+                        <SelectItem value="user">
+                          <div class="flex items-center space-x-2">
+                            <User class="h-4 w-4" />
+                            <span>Foydalanuvchi</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="checker">
+                          <div class="flex items-center space-x-2">
+                            <Shield class="h-4 w-4" />
+                            <span>Tekshiruvchi</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="registrator">
+                          <div class="flex items-center space-x-2">
+                            <UserCheck class="h-4 w-4" />
+                            <span>Ro'yxatga oluvchi</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="ceo">
+                          <div class="flex items-center space-x-2">
+                            <Crown class="h-4 w-4" />
+                            <span>Rahbar</span>
+                          </div>
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary">{{ user.uploaded_files_count }}</Badge>
+                    <Badge variant="secondary" class="font-medium text-xs">
+                      {{ user.uploaded_files_count || 0 }}
+                    </Badge>
                   </TableCell>
-                  <TableCell class="text-muted-foreground">
-                    {{ new Date(user.created_at).toLocaleDateString() }}
+                  <TableCell class="text-muted-foreground text-xs">
+                    {{ formatDate(user.created_at) }}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger as-child>
-                        <Button variant="ghost" class="h-8 w-8 p-0">
+                        <Button variant="ghost" class="h-7 w-7 p-0 hover:bg-muted">
                           <MoreHorizontal class="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
+                      <DropdownMenuContent align="end" class="w-48">
                         <DropdownMenuItem as-child>
-                          <Link :href="`/users/${user.id}`">View Profile</Link>
+                          <Link
+                            :href="`/users/${user.id}`"
+                            class="flex items-center w-full"
+                          >
+                            <Eye class="mr-2 h-4 w-4" />
+                            Profilni ko'rish
+                          </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem as-child>
+                          <Link
+                            :href="`/users/${user.id}/edit`"
+                            class="flex items-center w-full"
+                          >
+                            <Edit class="mr-2 h-4 w-4" />
+                            Tahrirlash
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                           @click="deleteUser(user)"
-                          class="text-destructive focus:text-destructive"
+                          class="text-destructive focus:text-destructive cursor-pointer"
                         >
-                          Delete User
+                          <Trash2 class="mr-2 h-4 w-4" />
+                          Foydalanuvchini o'chirish
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -243,44 +519,51 @@ const getRoleColor = (role) => {
           </div>
 
           <!-- Pagination -->
-          <div v-if="users.links" class="mt-6">
+          <div v-if="users && users.links" class="mt-4">
             <nav class="flex items-center justify-between">
               <div class="flex-1 flex justify-between sm:hidden">
                 <Link
                   v-if="users.prev_page_url"
                   :href="users.prev_page_url"
-                  class="relative inline-flex items-center px-4 py-2 border border-input bg-background text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
+                  class="relative inline-flex items-center px-4 py-2 border border-input bg-background text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
-                  Previous
+                  Oldingi
                 </Link>
                 <Link
                   v-if="users.next_page_url"
                   :href="users.next_page_url"
-                  class="ml-3 relative inline-flex items-center px-4 py-2 border border-input bg-background text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground"
+                  class="ml-3 relative inline-flex items-center px-4 py-2 border border-input bg-background text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
-                  Next
+                  Keyingi
                 </Link>
               </div>
               <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
                   <p class="text-sm text-muted-foreground">
-                    Showing {{ users.from }} to {{ users.to }} of {{ users.total }} results
+                    {{ users.from || 0 }} dan {{ users.to || 0 }} gacha, jami
+                    {{ users.total || 0 }} ta natija
                   </p>
                 </div>
                 <div>
                   <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                    <Link
-                      v-for="link in users.links"
-                      :key="link.label"
-                      :href="link.url"
-                      v-html="link.label"
-                      class="relative inline-flex items-center px-4 py-2 border text-sm font-medium"
-                      :class="[
-                        link.active
-                          ? 'z-10 bg-primary border-primary text-primary-foreground'
-                          : 'bg-background border-input text-foreground hover:bg-accent hover:text-accent-foreground',
-                      ]"
-                    />
+                    <template v-for="link in users.links || []" :key="link.label">
+                      <Link
+                        v-if="link.url"
+                        :href="link.url"
+                        v-html="link.label"
+                        class="relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors"
+                        :class="[
+                          link.active
+                            ? 'z-10 bg-primary border-primary text-primary-foreground'
+                            : 'bg-background border-input text-foreground hover:bg-accent hover:text-accent-foreground',
+                        ]"
+                      />
+                      <span
+                        v-else
+                        v-html="link.label"
+                        class="relative inline-flex items-center px-4 py-2 border border-input bg-muted text-muted-foreground text-sm font-medium cursor-not-allowed"
+                      />
+                    </template>
                   </nav>
                 </div>
               </div>

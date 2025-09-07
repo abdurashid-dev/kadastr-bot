@@ -2,16 +2,104 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class UserController extends Controller
 {
     use AuthorizesRequests;
+
+    /**
+     * Show the form for creating a new user.
+     */
+    public function create(): Response
+    {
+        $this->authorize('create', User::class);
+
+        return Inertia::render('Users/Create', [
+            'roles' => ['user', 'checker', 'registrator', 'ceo'],
+            'regions' => $this->getRegions(),
+        ]);
+    }
+
+    /**
+     * Get regions from Telegram registration.
+     */
+    private function getRegions(): array
+    {
+        return [
+            'Қувасой шахар',
+            'Фарғона шахар',
+            'Қўқон шахар',
+            'Марғилон шахар',
+            'Бешариқ туман',
+            'Боғдод туман',
+            'Бувайда туман',
+            'Данғара туман',
+            'Ёзёвон туман',
+            'Қува туман',
+            'Олтиариқ туман',
+            'Қўштепа туман',
+            'Риштон туман',
+            'Тошлоқ туман',
+            'Ўзбекистон туман',
+            'Учкўприк туман',
+            'Фарғона туман',
+            'Фурқат туман',
+            'Сўх туман',
+        ];
+    }
+
+    /**
+     * Store a newly created user in storage.
+     */
+    public function store(StoreUserRequest $request): RedirectResponse
+    {
+        $this->authorize('create', User::class);
+
+        $user = User::create($request->validated());
+
+        return redirect()->route('users.index')->with('success', 'User created successfully');
+    }
+
+    /**
+     * Show the form for editing the specified user.
+     */
+    public function edit(User $user): Response
+    {
+        $this->authorize('update', $user);
+
+        return Inertia::render('Users/Edit', [
+            'user' => $user,
+            'roles' => ['user', 'checker', 'registrator', 'ceo'],
+            'regions' => $this->getRegions(),
+        ]);
+    }
+
+    /**
+     * Update the specified user in storage.
+     */
+    public function update(UpdateUserRequest $request, User $user): RedirectResponse
+    {
+        $this->authorize('update', $user);
+
+        $validated = $request->validated();
+
+        // Remove password from update if it's null (not provided)
+        if (is_null($validated['password'])) {
+            unset($validated['password']);
+        }
+
+        $user->update($validated);
+
+        return redirect()->route('users.index')->with('success', 'User updated successfully');
+    }
 
     /**
      * Display a listing of users.
@@ -82,28 +170,6 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'User role updated successfully',
-            'user' => $user->fresh(),
-        ]);
-    }
-
-    /**
-     * Update the specified user's profile.
-     */
-    public function update(Request $request, User $user): JsonResponse
-    {
-        $this->authorize('update', $user);
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'phone_number' => 'nullable|string|max:20',
-            'region' => 'nullable|string|max:255',
-        ]);
-
-        $user->update($request->only(['name', 'email', 'phone_number', 'region']));
-
-        return response()->json([
-            'message' => 'User updated successfully',
             'user' => $user->fresh(),
         ]);
     }
