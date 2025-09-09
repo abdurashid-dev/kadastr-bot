@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Builder;
 
 class UploadedFile extends Model
 {
@@ -13,8 +13,11 @@ class UploadedFile extends Model
 
     // Status constants
     public const STATUS_PENDING = 'pending';
+
     public const STATUS_WAITING = 'waiting';
+
     public const STATUS_ACCEPTED = 'accepted';
+
     public const STATUS_REJECTED = 'rejected';
 
     protected $fillable = [
@@ -28,10 +31,15 @@ class UploadedFile extends Model
         'file_size',
         'status',
         'admin_notes',
+        'registered_count',
+        'not_registered_count',
+        'accepted_note',
     ];
 
     protected $casts = [
         'file_size' => 'integer',
+        'registered_count' => 'integer',
+        'not_registered_count' => 'integer',
     ];
 
     public function user(): BelongsTo
@@ -92,11 +100,12 @@ class UploadedFile extends Model
      */
     public function approveByChecker(): bool
     {
-        if (!$this->canBeApprovedByChecker()) {
+        if (! $this->canBeApprovedByChecker()) {
             return false;
         }
 
         $this->status = self::STATUS_WAITING;
+
         return $this->save();
     }
 
@@ -105,24 +114,26 @@ class UploadedFile extends Model
      */
     public function approveByRegistrator(): bool
     {
-        if (!$this->canBeApprovedByRegistrator()) {
+        if (! $this->canBeApprovedByRegistrator()) {
             return false;
         }
 
         $this->status = self::STATUS_ACCEPTED;
+
         return $this->save();
     }
 
     /**
      * Reject file
      */
-    public function reject(string $notes = null): bool
+    public function reject(?string $notes = null): bool
     {
         if ($notes) {
             $this->admin_notes = $notes;
         }
 
         $this->status = self::STATUS_REJECTED;
+
         return $this->save();
     }
 

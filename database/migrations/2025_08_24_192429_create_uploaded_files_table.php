@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('file_type'); // document, photo, video, etc.
             $table->string('mime_type')->nullable();
             $table->bigInteger('file_size')->nullable();
-            $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->enum('status', ['pending', 'waiting', 'accepted', 'rejected'])->default('pending');
             $table->text('admin_notes')->nullable();
             $table->timestamps();
         });

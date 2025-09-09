@@ -105,18 +105,36 @@ class FilesController extends Controller
 
     public function updateStatus(Request $request, UploadedFile $file)
     {
-        $request->validate([
+        $validationRules = [
             'status' => 'required|in:pending,waiting,accepted,rejected',
             'admin_notes' => 'nullable|string|max:1000',
             'feedback_files.*' => 'nullable|file|max:20480', // 20MB max per file
-        ]);
+        ];
+
+        // Add validation for accepted status fields
+        if ($request->status === 'accepted') {
+            $validationRules['registered_count'] = 'required|integer|min:0';
+            $validationRules['not_registered_count'] = 'required|integer|min:0';
+            $validationRules['accepted_note'] = 'nullable|string|max:1000';
+        }
+
+        $request->validate($validationRules);
 
         $oldStatus = $file->status;
 
-        $file->update([
+        $updateData = [
             'status' => $request->status,
             'admin_notes' => $request->admin_notes,
-        ]);
+        ];
+
+        // Add accepted status fields if status is accepted
+        if ($request->status === 'accepted') {
+            $updateData['registered_count'] = $request->registered_count;
+            $updateData['not_registered_count'] = $request->not_registered_count;
+            $updateData['accepted_note'] = $request->accepted_note;
+        }
+
+        $file->update($updateData);
 
         // Handle multiple feedback files upload if provided
         $feedbackFilePaths = [];
@@ -162,10 +180,10 @@ class FilesController extends Controller
                 default => '📄 <b>Yangilandi</b>'
             };
 
-            $message = "<b>📁 Fayl holati yangilandi!</b>\n\n" .
-                "<b>Fayl nomi:</b> {$file->name}\n" .
-                "<b>Asl fayl:</b> {$file->original_filename}\n" .
-                "<b>Yangi holat:</b> {$statusText}\n" .
+            $message = "<b>📁 Fayl holati yangilandi!</b>\n\n".
+                "<b>Fayl nomi:</b> {$file->name}\n".
+                "<b>Asl fayl:</b> {$file->original_filename}\n".
+                "<b>Yangi holat:</b> {$statusText}\n".
                 "<b>Fayl ID:</b> #{$file->id}";
 
             if ($adminNotes) {
@@ -217,7 +235,7 @@ class FilesController extends Controller
     private function sendFeedbackFile(string $botToken, string $chatId, string $filePath)
     {
         try {
-            $fullPath = storage_path('app/public/' . $filePath);
+            $fullPath = storage_path('app/public/'.$filePath);
 
             if (! file_exists($fullPath)) {
                 Log::error('Feedback file not found', ['path' => $fullPath]);
@@ -345,7 +363,7 @@ class FilesController extends Controller
             // Return file as download
             return response($fileContent)
                 ->header('Content-Type', $file->mime_type ?: 'application/octet-stream')
-                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
+                ->header('Content-Disposition', 'attachment; filename="'.$filename.'"')
                 ->header('Content-Length', strlen($fileContent))
                 ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
                 ->header('Pragma', 'no-cache')

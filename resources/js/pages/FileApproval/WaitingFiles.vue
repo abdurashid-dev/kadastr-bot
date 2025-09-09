@@ -264,6 +264,52 @@
             />
           </div>
 
+          <!-- Accepted status specific fields -->
+          <div
+            v-if="newStatus === 'accepted'"
+            class="space-y-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800"
+          >
+            <h4 class="text-sm font-medium text-green-800 dark:text-green-200">
+              Tasdiqlash ma'lumotlari
+            </h4>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <Label for="registered_count">Migratsiya bo'lganlar soni</Label>
+                <Input
+                  id="registered_count"
+                  v-model="registeredCount"
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  class="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label for="not_registered_count">Migratsiya bo'lmaganlar soni</Label>
+                <Input
+                  id="not_registered_count"
+                  v-model="notRegisteredCount"
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  class="mt-1"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label for="accepted_note">Tasdiqlash izohi</Label>
+              <Textarea
+                id="accepted_note"
+                v-model="acceptedNote"
+                placeholder="Tasdiqlash haqida qo'shimcha ma'lumot..."
+                class="mt-1 min-h-[60px]"
+              />
+            </div>
+          </div>
+
           <div>
             <Label>Javob fayli (ixtiyoriy)</Label>
             <div class="mt-1 space-y-2">
@@ -381,6 +427,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   FileText,
@@ -420,6 +467,11 @@ const adminNotes = ref("");
 const feedbackFiles = ref([]);
 const fileInput = ref(null);
 const isUpdatingStatus = ref(false);
+
+// Accepted status specific fields
+const registeredCount = ref(0);
+const notRegisteredCount = ref(0);
+const acceptedNote = ref("");
 
 const getFileIcon = (fileType) => {
   switch (fileType) {
@@ -535,6 +587,12 @@ const openStatusDialog = (file) => {
   newStatus.value = file.status;
   adminNotes.value = file.admin_notes || "";
   feedbackFiles.value = [];
+
+  // Initialize accepted status fields
+  registeredCount.value = file.registered_count || 0;
+  notRegisteredCount.value = file.not_registered_count || 0;
+  acceptedNote.value = file.accepted_note || "";
+
   statusDialogOpen.value = true;
 };
 
@@ -575,6 +633,13 @@ const updateStatus = () => {
   const formData = new FormData();
   formData.append("status", newStatus.value);
   formData.append("admin_notes", adminNotes.value);
+
+  // Add accepted status fields if status is accepted
+  if (newStatus.value === "accepted") {
+    formData.append("registered_count", registeredCount.value);
+    formData.append("not_registered_count", notRegisteredCount.value);
+    formData.append("accepted_note", acceptedNote.value);
+  }
 
   // Append multiple feedback files
   feedbackFiles.value.forEach((file, index) => {
