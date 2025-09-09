@@ -46,12 +46,6 @@ const availableLocales = computed(
             >
               Kirish
             </Link>
-            <Link
-              :href="route('register')"
-              class="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-            >
-              Ro'yxatdan o'tish
-            </Link>
           </template>
         </div>
       </nav>
@@ -77,12 +71,6 @@ const availableLocales = computed(
               class="inline-block rounded-sm border border-[#19140035] bg-[#1b1b18] px-6 py-3 text-sm leading-normal text-white hover:border-black hover:bg-black dark:border-[#eeeeec] dark:bg-[#eeeeec] dark:text-[#1C1C1A] dark:hover:border-white dark:hover:bg-white"
             >
               Tizimga kirish
-            </Link>
-            <Link
-              :href="route('register')"
-              class="inline-block rounded-sm border border-[#19140035] px-6 py-3 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-            >
-              Ro'yxatdan o'tish
             </Link>
           </div>
         </div>

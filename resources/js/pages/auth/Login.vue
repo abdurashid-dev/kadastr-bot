@@ -72,10 +72,6 @@ defineProps<{
                 </Button>
             </div>
 
-            <div class="text-sm text-center text-muted-foreground">
-                Don't have an account?
-                <TextLink :href="route('register')" :tabindex="5">Sign up</TextLink>
-            </div>
         </Form>
     </AuthBase>
 </template>
