@@ -33,18 +33,28 @@ const statusLabels = {
   rejected: "Rad etilgan",
 };
 
-const statusColors = ["#F59E0B", "#3B82F6", "#10B981", "#EF4444"];
+const statusColors = {
+  pending: "#F59E0B", // Yellow
+  accepted: "#10B981", // Green
+  rejected: "#EF4444", // Red
+};
 
 const chartSeries = computed(() => {
   return Object.entries(props.data)
-    .filter(([, count]) => count > 0)
+    .filter(([status, count]) => count > 0 && status !== 'waiting')
     .map(([, count]) => count);
 });
 
 const chartLabels = computed(() => {
   return Object.entries(props.data)
-    .filter(([, count]) => count > 0)
+    .filter(([status, count]) => count > 0 && status !== 'waiting')
     .map(([status]) => statusLabels[status] || status);
+});
+
+const chartColors = computed(() => {
+  return Object.entries(props.data)
+    .filter(([status, count]) => count > 0 && status !== 'waiting')
+    .map(([status]) => statusColors[status] || '#6B7280');
 });
 
 const chartOptions = computed(() => ({
@@ -56,7 +66,7 @@ const chartOptions = computed(() => ({
     },
   },
   labels: chartLabels.value,
-  colors: statusColors,
+  colors: chartColors.value,
   legend: {
     position: "bottom",
     fontSize: "12px",

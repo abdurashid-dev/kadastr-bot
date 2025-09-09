@@ -4,7 +4,7 @@ import AppLayout from "@/layouts/AppLayout.vue";
 import { Head, Link } from "@inertiajs/vue3";
 import ApexStatusChart from "@/components/charts/ApexStatusChart.vue";
 import ApexRegionChart from "@/components/charts/ApexRegionChart.vue";
-import ApexFileTypeChart from "@/components/charts/ApexFileTypeChart.vue";
+import ApexFilesByRegionChart from "@/components/charts/ApexFilesByRegionChart.vue";
 import ApexMonthlyTrendChart from "@/components/charts/ApexMonthlyTrendChart.vue";
 
 const breadcrumbs = [
@@ -29,7 +29,6 @@ const props = defineProps({
 const totalFiles = computed(() => props.fileStats.total_files || 0);
 const filesByStatus = computed(() => props.fileStats.files_by_status || {});
 const filesByRegion = computed(() => props.fileStats.files_by_region || {});
-const filesByType = computed(() => props.fileStats.files_by_type || {});
 const recentFiles = computed(() => props.fileStats.recent_files || []);
 const monthlyStats = computed(() => props.fileStats.monthly_stats || {});
 
@@ -67,11 +66,14 @@ const getStatusBadgeClass = (status) => {
 
 // Format date
 const formatDate = (date) => {
-  return new Date(date).toLocaleDateString("uz-UZ", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+  const dateObj = new Date(date);
+  const day = dateObj.getDate().toString().padStart(2, "0");
+  const month = (dateObj.getMonth() + 1).toString().padStart(2, "0");
+  const year = dateObj.getFullYear();
+  const hours = dateObj.getHours().toString().padStart(2, "0");
+  const minutes = dateObj.getMinutes().toString().padStart(2, "0");
+  
+  return `${day}.${month}.${year} ${hours}:${minutes}`;
 };
 </script>
 
@@ -290,20 +292,22 @@ const formatDate = (date) => {
       </div>
 
       <!-- Charts Section -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-1 gap-6">
         <!-- Status Chart -->
         <ApexStatusChart :data="filesByStatus" />
-
-        <!-- Region Chart -->
-        <ApexRegionChart :data="filesByRegion" />
       </div>
 
       <!-- Additional Charts -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- File Type Chart -->
-        <ApexFileTypeChart :data="filesByType" />
+        <!-- Region Chart (with registered count) -->
+        <ApexRegionChart :data="filesByRegion" />
 
-        <!-- Monthly Trend Chart -->
+        <!-- Files by Region Chart (files only) -->
+        <ApexFilesByRegionChart :data="filesByRegion" />
+      </div>
+
+      <!-- Monthly Trend Chart -->
+      <div class="grid grid-cols-1 lg:grid-cols-1 gap-6">
         <ApexMonthlyTrendChart :data="monthlyStats" />
       </div>
 

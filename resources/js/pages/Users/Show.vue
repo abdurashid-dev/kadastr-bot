@@ -84,6 +84,17 @@ const getStatusColor = (status) => {
   }
   return colors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
 }
+
+const formatDate = (dateString) => {
+  const dateObj = new Date(dateString);
+  const day = dateObj.getDate().toString().padStart(2, "0");
+  const month = (dateObj.getMonth() + 1).toString().padStart(2, "0");
+  const year = dateObj.getFullYear();
+  const hours = dateObj.getHours().toString().padStart(2, "0");
+  const minutes = dateObj.getMinutes().toString().padStart(2, "0");
+  
+  return `${day}.${month}.${year} ${hours}:${minutes}`;
+}
 </script>
 
 <template>
@@ -204,7 +215,7 @@ const getStatusColor = (status) => {
                 <div>
                   <Label class="text-sm font-medium">Joined</Label>
                   <p class="text-sm text-muted-foreground mt-1">
-                    {{ new Date(user.created_at).toLocaleDateString() }}
+                    {{ formatDate(user.created_at) }}
                   </p>
                 </div>
 
@@ -265,7 +276,7 @@ const getStatusColor = (status) => {
                     <h3 class="text-sm font-medium">{{ file.name }}</h3>
                     <p class="text-sm text-muted-foreground">{{ file.original_filename }}</p>
                     <p class="text-xs text-muted-foreground">
-                      {{ new Date(file.created_at).toLocaleDateString() }} • 
+                      {{ formatDate(file.created_at) }} • 
                       {{ (file.file_size / 1024).toFixed(1) }} KB
                     </p>
                   </div>

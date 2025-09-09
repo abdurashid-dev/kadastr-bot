@@ -26,45 +26,18 @@ const props = defineProps({
 
 const chartData = computed(() => {
   return Object.entries(props.data)
-    .sort(([,a], [,b]) => {
-      // Sort by registered_count if available, otherwise by count
-      const aRegistered = typeof a === 'object' ? a.registered_count : 0
-      const bRegistered = typeof b === 'object' ? b.registered_count : 0
-      const aCount = typeof a === 'object' ? a.count : a
-      const bCount = typeof b === 'object' ? b.count : b
-      
-      // Primary sort by registered_count (descending), secondary by count (descending)
-      if (aRegistered !== bRegistered) {
-        return bRegistered - aRegistered
-      }
-      return bCount - aCount
-    })
+    .map(([region, data]) => ({
+      region,
+      count: typeof data === 'object' ? data.count : data
+    }))
+    .sort((a, b) => b.count - a.count)
     .slice(0, 10) // Show top 10 regions
 })
 
-const chartSeries = computed(() => {
-  const hasRegisteredCount = chartData.value.some(([, data]) => 
-    typeof data === 'object' && data.registered_count > 0
-  )
-  
-  if (hasRegisteredCount) {
-    return [
-      {
-        name: 'Files',
-        data: chartData.value.map(([, data]) => typeof data === 'object' ? data.count : data)
-      },
-      {
-        name: 'Migratsiya bo\'lganlar',
-        data: chartData.value.map(([, data]) => typeof data === 'object' ? data.registered_count : 0)
-      }
-    ]
-  }
-  
-  return [{
-    name: 'Files',
-    data: chartData.value.map(([, data]) => typeof data === 'object' ? data.count : data)
-  }]
-})
+const chartSeries = computed(() => [{
+  name: 'Files',
+  data: chartData.value.map(item => item.count)
+}])
 
 const chartOptions = computed(() => ({
   chart: {
@@ -85,9 +58,9 @@ const chartOptions = computed(() => ({
   dataLabels: {
     enabled: false
   },
-  colors: ['#3B82F6', '#10B981'], // Blue for files, Green for registered count
+  colors: ['#3B82F6'], // Blue for files only
   xaxis: {
-    categories: chartData.value.map(([region]) => region),
+    categories: chartData.value.map(item => item.region),
     labels: {
       style: {
         fontSize: '11px',
@@ -125,10 +98,8 @@ const chartOptions = computed(() => ({
   },
   tooltip: {
     y: {
-      formatter: function (value, { seriesIndex, dataPointIndex }) {
-        const seriesNames = ['Files', 'Migratsiya bo\'lganlar']
-        const seriesName = seriesNames[seriesIndex] || 'Files'
-        return `${value} ${seriesName.toLowerCase()}`
+      formatter: function (value) {
+        return `${value} files`
       }
     }
   }

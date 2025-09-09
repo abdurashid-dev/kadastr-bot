@@ -160,12 +160,13 @@ const getRoleBadgeClass = (role) => {
 }
 
 const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('uz-UZ', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  const dateObj = new Date(date);
+  const day = dateObj.getDate().toString().padStart(2, "0");
+  const month = (dateObj.getMonth() + 1).toString().padStart(2, "0");
+  const year = dateObj.getFullYear();
+  const hours = dateObj.getHours().toString().padStart(2, "0");
+  const minutes = dateObj.getMinutes().toString().padStart(2, "0");
+  
+  return `${day}.${month}.${year} ${hours}:${minutes}`;
 }
 </script>

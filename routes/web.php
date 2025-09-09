@@ -24,9 +24,15 @@ Route::get('dashboard', function () {
             ->groupBy('status')
             ->pluck('count', 'status'),
         'files_by_region' => \App\Models\UploadedFile::join('users', 'uploaded_files.user_id', '=', 'users.id')
-            ->selectRaw('users.region, count(*) as count')
+            ->selectRaw('users.region, count(*) as count, sum(registered_count) as registered_count')
             ->groupBy('users.region')
-            ->pluck('count', 'region'),
+            ->get()
+            ->mapWithKeys(function ($item) {
+                return [$item->region => [
+                    'count' => $item->count,
+                    'registered_count' => $item->registered_count ?? 0,
+                ]];
+            }),
         'files_by_type' => \App\Models\UploadedFile::selectRaw('file_type, count(*) as count')
             ->groupBy('file_type')
             ->pluck('count', 'file_type'),
@@ -34,17 +40,41 @@ Route::get('dashboard', function () {
             ->latest()
             ->limit(5)
             ->get(['id', 'name', 'status', 'file_type', 'created_at', 'user_id']),
-        'monthly_stats' => \App\Models\UploadedFile::selectRaw(
-            \DB::getDriverName() === 'sqlite'
-                ? 'strftime("%Y-%m", created_at) as month, count(*) as count'
-                : (\DB::getDriverName() === 'pgsql'
-                    ? 'to_char(created_at, \'YYYY-MM\') as month, count(*) as count'
-                    : 'DATE_FORMAT(created_at, "%Y-%m") as month, count(*) as count')
-        )
-            ->where('created_at', '>=', now()->subMonths(6))
-            ->groupBy('month')
-            ->orderBy('month')
-            ->pluck('count', 'month'),
+        'monthly_stats' => [
+            'daily' => \App\Models\UploadedFile::selectRaw(
+                \DB::getDriverName() === 'sqlite'
+                    ? 'strftime("%Y-%m-%d", created_at) as date, count(*) as count'
+                    : (\DB::getDriverName() === 'pgsql'
+                        ? 'to_char(created_at, \'YYYY-MM-DD\') as date, count(*) as count'
+                        : 'DATE_FORMAT(created_at, "%Y-%m-%d") as date, count(*) as count')
+            )
+                ->where('created_at', '>=', now()->subMonths(6))
+                ->groupBy('date')
+                ->orderBy('date')
+                ->pluck('count', 'date'),
+            'hourly' => \App\Models\UploadedFile::selectRaw(
+                \DB::getDriverName() === 'sqlite'
+                    ? 'strftime("%Y-%m-%d %H:00:00", created_at) as hour, count(*) as count'
+                    : (\DB::getDriverName() === 'pgsql'
+                        ? 'to_char(created_at, \'YYYY-MM-DD HH24:00:00\') as hour, count(*) as count'
+                        : 'DATE_FORMAT(created_at, "%Y-%m-%d %H:00:00") as hour, count(*) as count')
+            )
+                ->where('created_at', '>=', now()->subDays(1))
+                ->groupBy('hour')
+                ->orderBy('hour')
+                ->pluck('count', 'hour'),
+            'monthly' => \App\Models\UploadedFile::selectRaw(
+                \DB::getDriverName() === 'sqlite'
+                    ? 'strftime("%Y-%m", created_at) as month, count(*) as count'
+                    : (\DB::getDriverName() === 'pgsql'
+                        ? 'to_char(created_at, \'YYYY-MM\') as month, count(*) as count'
+                        : 'DATE_FORMAT(created_at, "%Y-%m") as month, count(*) as count')
+            )
+                ->where('created_at', '>=', now()->subMonths(12))
+                ->groupBy('month')
+                ->orderBy('month')
+                ->pluck('count', 'month'),
+        ],
     ];
 
     return Inertia::render('Dashboard', [
@@ -95,5 +125,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-require __DIR__ . '/settings.php';
-require __DIR__ . '/auth.php';
+require __DIR__.'/settings.php';
+require __DIR__.'/auth.php';
