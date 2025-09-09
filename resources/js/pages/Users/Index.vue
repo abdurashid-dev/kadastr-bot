@@ -220,7 +220,7 @@ const formatDate = (dateString) => {
   <AppLayout>
     <Head title="Foydalanuvchilarni boshqarish" />
 
-    <div class="space-y-8 px-4">
+    <div class="space-y-8 p-4">
       <!-- Success/Error Messages -->
       <Alert
         v-if="successMessage"
@@ -264,64 +264,118 @@ const formatDate = (dateString) => {
       </div>
 
       <!-- Stats Cards -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card class="border-l-2 border-l-blue-500">
-          <CardContent class="p-2">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-xs font-medium text-muted-foreground">
-                  Jami foydalanuvchilar
-                </p>
-                <p class="text-base font-bold text-blue-600">{{ users.total || 0 }}</p>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <!-- Total Users -->
+        <div
+          class="group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/30 border border-blue-200/50 dark:border-blue-800/50 hover:shadow-lg transition-all duration-300"
+        >
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          ></div>
+          <div class="relative p-4">
+            <div class="flex items-center justify-between mb-2">
+              <div
+                class="p-2 rounded-lg bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors duration-300"
+              >
+                <Users class="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
-              <Users class="h-4 w-4 text-blue-500" />
             </div>
-          </CardContent>
-        </Card>
+            <div class="space-y-1">
+              <p
+                class="text-xs font-medium text-blue-700/70 dark:text-blue-300/70 uppercase tracking-wide"
+              >
+                Jami foydalanuvchilar
+              </p>
+              <p class="text-2xl font-bold text-blue-900 dark:text-blue-100">
+                {{ users.total || 0 }}
+              </p>
+            </div>
+          </div>
+        </div>
 
-        <Card class="border-l-2 border-l-green-500">
-          <CardContent class="p-2">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-xs font-medium text-muted-foreground">Tekshiruvchilar</p>
-                <p class="text-base font-bold text-green-600">
-                  {{ (users.data || []).filter((u) => u.role === "checker").length }}
-                </p>
+        <!-- Checkers -->
+        <div
+          class="group relative overflow-hidden rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/30 border border-green-200/50 dark:border-green-800/50 hover:shadow-lg transition-all duration-300"
+        >
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          ></div>
+          <div class="relative p-4">
+            <div class="flex items-center justify-between mb-2">
+              <div
+                class="p-2 rounded-lg bg-green-500/10 group-hover:bg-green-500/20 transition-colors duration-300"
+              >
+                <Shield class="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
-              <Shield class="h-4 w-4 text-green-500" />
             </div>
-          </CardContent>
-        </Card>
+            <div class="space-y-1">
+              <p
+                class="text-xs font-medium text-green-700/70 dark:text-green-300/70 uppercase tracking-wide"
+              >
+                Tekshiruvchilar
+              </p>
+              <p class="text-2xl font-bold text-green-900 dark:text-green-100">
+                {{ (users.data || []).filter((u) => u.role === "checker").length }}
+              </p>
+            </div>
+          </div>
+        </div>
 
-        <Card class="border-l-2 border-l-yellow-500">
-          <CardContent class="p-2">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-xs font-medium text-muted-foreground">
-                  Ro'yxatga oluvchilar
-                </p>
-                <p class="text-base font-bold text-yellow-600">
-                  {{ (users.data || []).filter((u) => u.role === "registrator").length }}
-                </p>
+        <!-- Registrators -->
+        <div
+          class="group relative overflow-hidden rounded-xl bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/50 dark:to-amber-900/30 border border-amber-200/50 dark:border-amber-800/50 hover:shadow-lg transition-all duration-300"
+        >
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          ></div>
+          <div class="relative p-4">
+            <div class="flex items-center justify-between mb-2">
+              <div
+                class="p-2 rounded-lg bg-amber-500/10 group-hover:bg-amber-500/20 transition-colors duration-300"
+              >
+                <UserCheck class="h-5 w-5 text-amber-600 dark:text-amber-400" />
               </div>
-              <UserCheck class="h-4 w-4 text-yellow-500" />
             </div>
-          </CardContent>
-        </Card>
+            <div class="space-y-1">
+              <p
+                class="text-xs font-medium text-amber-700/70 dark:text-amber-300/70 uppercase tracking-wide"
+              >
+                Ro'yxatga oluvchilar
+              </p>
+              <p class="text-2xl font-bold text-amber-900 dark:text-amber-100">
+                {{ (users.data || []).filter((u) => u.role === "registrator").length }}
+              </p>
+            </div>
+          </div>
+        </div>
 
-        <Card class="border-l-2 border-l-red-500">
-          <CardContent class="p-2">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-xs font-medium text-muted-foreground">Rahbarlar</p>
-                <p class="text-base font-bold text-red-600">
-                  {{ (users.data || []).filter((u) => u.role === "ceo").length }}
-                </p>
+        <!-- CEOs -->
+        <div
+          class="group relative overflow-hidden rounded-xl bg-gradient-to-br from-rose-50 to-rose-100 dark:from-rose-950/50 dark:to-rose-900/30 border border-rose-200/50 dark:border-rose-800/50 hover:shadow-lg transition-all duration-300"
+        >
+          <div
+            class="absolute inset-0 bg-gradient-to-br from-rose-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          ></div>
+          <div class="relative p-4">
+            <div class="flex items-center justify-between mb-2">
+              <div
+                class="p-2 rounded-lg bg-rose-500/10 group-hover:bg-rose-500/20 transition-colors duration-300"
+              >
+                <Crown class="h-5 w-5 text-rose-600 dark:text-rose-400" />
               </div>
-              <Crown class="h-4 w-4 text-red-500" />
             </div>
-          </CardContent>
-        </Card>
+            <div class="space-y-1">
+              <p
+                class="text-xs font-medium text-rose-700/70 dark:text-rose-300/70 uppercase tracking-wide"
+              >
+                Rahbarlar
+              </p>
+              <p class="text-2xl font-bold text-rose-900 dark:text-rose-100">
+                {{ (users.data || []).filter((u) => u.role === "ceo").length }}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Filters -->

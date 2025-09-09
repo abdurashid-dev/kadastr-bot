@@ -15,13 +15,13 @@ class FileApprovalController extends Controller
     use AuthorizesRequests;
 
     /**
-     * Display pending files for checkers
+     * Display pending files for checkers, registrators, and CEOs
      */
     public function pendingFiles(Request $request): Response
     {
         $this->authorize('viewAny', UploadedFile::class);
 
-        if (!$request->user()->isChecker()) {
+        if (!in_array($request->user()->role, ['checker', 'registrator', 'ceo'])) {
             abort(403);
         }
 
@@ -32,17 +32,18 @@ class FileApprovalController extends Controller
 
         return Inertia::render('FileApproval/PendingFiles', [
             'files' => $files,
+            'user' => $request->user(),
         ]);
     }
 
     /**
-     * Display waiting files for registrators
+     * Display waiting files for registrators and CEOs
      */
     public function waitingFiles(Request $request): Response
     {
         $this->authorize('viewAny', UploadedFile::class);
 
-        if (!$request->user()->isRegistrator()) {
+        if (!in_array($request->user()->role, ['registrator', 'ceo'])) {
             abort(403);
         }
 
@@ -53,6 +54,7 @@ class FileApprovalController extends Controller
 
         return Inertia::render('FileApproval/WaitingFiles', [
             'files' => $files,
+            'user' => $request->user(),
         ]);
     }
 

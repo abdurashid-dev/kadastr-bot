@@ -5,7 +5,7 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, FileText, Users, BarChart3, Clock, CheckCircle, History } from 'lucide-vue-next';
+import { LayoutGrid, FileText, Users, Clock, CheckCircle } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -20,28 +20,22 @@ const mainNavItems: NavItem[] = [
         icon: FileText,
     },
     {
-        title: 'Tarix',
-        href: '/approval/history',
-        icon: History,
-        roles: ['user'],
-    },
-    {
         title: "Kutilayotgan fayllarni ko'rish",
         href: '/approval/pending',
         icon: Clock,
-        roles: ['checker'],
+        roles: ['checker', 'registrator', 'ceo'],
     },
     {
         title: 'Bino inshoatga yuborildi',
         href: '/approval/waiting',
         icon: CheckCircle,
-        roles: ['registrator'],
+        roles: ['registrator', 'ceo'],
     },
     {
         title: 'Foydalanuvchilarni boshqarish',
         href: '/users',
         icon: Users,
-        roles: ['ceo', 'registrator'],
+        roles: ['ceo'],
     },
 ];
 </script>
@@ -65,7 +59,6 @@ const mainNavItems: NavItem[] = [
     </SidebarContent>
 
     <SidebarFooter>
-      <NavFooter :items="footerNavItems" />
       <NavUser />
     </SidebarFooter>
   </Sidebar>
