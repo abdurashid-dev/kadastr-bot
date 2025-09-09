@@ -76,7 +76,7 @@ return [
     'upload_date' => 'Юкланган сана',
     'approve' => 'Тасдиқлаш',
     'reject' => 'Рад этиш',
-    'pending' => 'Кутилмоқда',
+    'pending' => 'Жараёнда',
     'waiting' => 'Кутиш',
     'accepted' => 'Қабул қилинган',
     'rejected' => 'Рад этилган',

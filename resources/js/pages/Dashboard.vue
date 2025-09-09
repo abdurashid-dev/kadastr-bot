@@ -44,7 +44,7 @@ const statusCounts = computed(() => ({
 // Get status label
 const getStatusLabel = (status) => {
   const labels = {
-    pending: "Kutilmoqda",
+    pending: "Jarayonda",
     waiting: "Bino inshoatga yuborildi",
     accepted: "Tasdiqlangan",
     rejected: "Rad etilgan",
@@ -276,7 +276,7 @@ const formatDate = (date) => {
             <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
               {{ statusCounts.pending }}
             </div>
-            <div class="text-sm text-yellow-600 dark:text-yellow-400">Kutilmoqda</div>
+            <div class="text-sm text-yellow-600 dark:text-yellow-400">Jarayonda</div>
           </div>
           <div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">

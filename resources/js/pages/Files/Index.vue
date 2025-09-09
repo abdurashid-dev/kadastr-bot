@@ -47,6 +47,7 @@ import {
   RefreshCw,
   Upload,
   X,
+  LoaderCircle,
 } from "lucide-vue-next";
 import { ref, computed } from "vue";
 
@@ -83,7 +84,7 @@ const breadcrumbs = [
 // Status options based on user role
 const statusOptions = computed(() => {
   const baseOptions = [
-    { value: "pending", label: "Kutilmoqda" },
+    { value: "pending", label: "Jarayonda" },
     { value: "rejected", label: "Rad etilgan" },
   ];
 
@@ -124,6 +125,7 @@ const newStatus = ref("pending");
 const adminNotes = ref("");
 const feedbackFiles = ref([]);
 const fileInput = ref(null);
+const isUpdatingStatus = ref(false);
 
 const getFileIcon = (fileType) => {
   switch (fileType) {
@@ -150,7 +152,7 @@ const getStatusBadge = (status) => {
     case "waiting":
       return { variant: "secondary", icon: Clock, text: "Bino inshoatga yuborildi" };
     default:
-      return { variant: "secondary", icon: Clock, text: "Kutilmoqda" };
+      return { variant: "secondary", icon: Clock, text: "Jarayonda" };
   }
 };
 
@@ -240,6 +242,8 @@ const clearAllFiles = () => {
 const updateStatus = () => {
   if (!selectedFile.value) return;
 
+  isUpdatingStatus.value = true;
+
   const formData = new FormData();
   formData.append("status", newStatus.value);
   formData.append("admin_notes", adminNotes.value);
@@ -255,6 +259,13 @@ const updateStatus = () => {
       statusDialogOpen.value = false;
       selectedFile.value = null;
       feedbackFiles.value = [];
+      isUpdatingStatus.value = false;
+    },
+    onError: () => {
+      isUpdatingStatus.value = false;
+    },
+    onFinish: () => {
+      isUpdatingStatus.value = false;
     },
   });
 };
@@ -293,7 +304,7 @@ const deleteFile = (file) => {
           >
             <Clock class="h-4 w-4 text-yellow-600" />
             <span class="font-medium text-yellow-600">{{ stats.pending }}</span>
-            <span class="text-muted-foreground">Kutilmoqda</span>
+            <span class="text-muted-foreground">Jarayonda</span>
           </div>
           <div
             class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer hover:bg-accent/50 transition-colors"
@@ -647,10 +658,17 @@ const deleteFile = (file) => {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" @click="statusDialogOpen = false"
-            >Bekor qilish</Button
+          <Button
+            variant="outline"
+            @click="statusDialogOpen = false"
+            :disabled="isUpdatingStatus"
           >
-          <Button @click="updateStatus">Holatni yangilash</Button>
+            Bekor qilish
+          </Button>
+          <Button @click="updateStatus" :disabled="isUpdatingStatus">
+            <LoaderCircle v-if="isUpdatingStatus" class="w-4 h-4 animate-spin mr-2" />
+            {{ isUpdatingStatus ? "Yangilanmoqda..." : "Holatni yangilash" }}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

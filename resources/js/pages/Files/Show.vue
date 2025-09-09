@@ -28,6 +28,7 @@ import {
   Download,
   Upload,
   X,
+  LoaderCircle,
 } from "lucide-vue-next";
 import { ref } from "vue";
 
@@ -54,6 +55,7 @@ const newStatus = ref(props.file.status);
 const adminNotes = ref(props.file.admin_notes || "");
 const feedbackFiles = ref([]);
 const fileInput = ref(null);
+const isUpdatingStatus = ref(false);
 
 const getFileIcon = (fileType) => {
   switch (fileType) {
@@ -91,7 +93,7 @@ const getStatusBadge = (status) => {
       return {
         variant: "secondary",
         icon: Clock,
-        text: "Kutilmoqda",
+        text: "Jarayonda",
         color: "text-yellow-600",
       };
   }
@@ -149,10 +151,12 @@ const clearAllFiles = () => {
 };
 
 const updateStatus = () => {
+  isUpdatingStatus.value = true;
+
   const formData = new FormData();
   formData.append("status", newStatus.value);
   formData.append("admin_notes", adminNotes.value);
-  
+
   // Append multiple feedback files
   feedbackFiles.value.forEach((file, index) => {
     formData.append(`feedback_files[${index}]`, file);
@@ -163,6 +167,13 @@ const updateStatus = () => {
     onSuccess: () => {
       statusDialogOpen.value = false;
       feedbackFiles.value = [];
+      isUpdatingStatus.value = false;
+    },
+    onError: () => {
+      isUpdatingStatus.value = false;
+    },
+    onFinish: () => {
+      isUpdatingStatus.value = false;
     },
   });
 };
@@ -315,7 +326,7 @@ const deleteFile = () => {
               v-model="newStatus"
               class="w-full mt-1 px-3 py-2 border rounded-md"
             >
-              <option value="pending">Kutilmoqda</option>
+              <option value="pending">Jarayonda</option>
               <option value="accepted">Tasdiqlangan</option>
               <option value="rejected">Rad etilgan</option>
             </select>
@@ -352,7 +363,7 @@ const deleteFile = () => {
                   <Upload class="mr-2 h-4 w-4" />
                   Fayl tanlash
                 </Button>
-                
+
                 <Button
                   v-if="feedbackFiles.length > 0"
                   type="button"
@@ -366,12 +377,15 @@ const deleteFile = () => {
               </div>
 
               <div v-if="feedbackFiles.length > 0" class="space-y-2">
-                <div 
-                  v-for="(file, index) in feedbackFiles" 
+                <div
+                  v-for="(file, index) in feedbackFiles"
                   :key="index"
                   class="flex items-center gap-2 p-2 bg-muted rounded-md"
                 >
-                  <component :is="getFileIcon('document')" class="h-4 w-4 text-muted-foreground" />
+                  <component
+                    :is="getFileIcon('document')"
+                    class="h-4 w-4 text-muted-foreground"
+                  />
                   <span class="text-sm flex-1">{{ file.name }}</span>
                   <span class="text-xs text-muted-foreground">
                     {{ (file.size / 1024 / 1024).toFixed(1) }}MB
@@ -388,9 +402,10 @@ const deleteFile = () => {
               </div>
 
               <p class="text-xs text-muted-foreground">
-                {{ feedbackFiles.length > 0 
-                  ? `${feedbackFiles.length} fayl tanlandi. Bu fayllar foydalanuvchiga Telegram orqali yuboriladi.`
-                  : 'Bu fayllar foydalanuvchiga Telegram orqali yuboriladi (bir nechta fayl tanlash mumkin)'
+                {{
+                  feedbackFiles.length > 0
+                    ? `${feedbackFiles.length} fayl tanlandi. Bu fayllar foydalanuvchiga Telegram orqali yuboriladi.`
+                    : "Bu fayllar foydalanuvchiga Telegram orqali yuboriladi (bir nechta fayl tanlash mumkin)"
                 }}
               </p>
             </div>
@@ -398,10 +413,17 @@ const deleteFile = () => {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" @click="statusDialogOpen = false">
+          <Button
+            variant="outline"
+            @click="statusDialogOpen = false"
+            :disabled="isUpdatingStatus"
+          >
             Bekor qilish
           </Button>
-          <Button @click="updateStatus"> Holatni yangilash </Button>
+          <Button @click="updateStatus" :disabled="isUpdatingStatus">
+            <LoaderCircle v-if="isUpdatingStatus" class="w-4 h-4 animate-spin mr-2" />
+            {{ isUpdatingStatus ? "Yangilanmoqda..." : "Holatni yangilash" }}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

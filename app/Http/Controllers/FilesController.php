@@ -157,15 +157,15 @@ class FilesController extends Controller
             $statusText = match ($newStatus) {
                 'accepted' => '✅ <b>Tasdiqlandi</b>',
                 'rejected' => '❌ <b>Rad etildi</b>',
-                'pending' => '⏳ <b>Kutilmoqda</b>',
-                'waiting' => '⏳ <b>Kutilmoqda</b>',
+                'pending' => '⏳ <b>Jarayonda</b>',
+                'waiting' => "🏢 <b>Bino inshoat bo'limiga yuborildi</b>",
                 default => '📄 <b>Yangilandi</b>'
             };
 
-            $message = "<b>📁 Fayl holati yangilandi!</b>\n\n".
-                "<b>Fayl nomi:</b> {$file->name}\n".
-                "<b>Asl fayl:</b> {$file->original_filename}\n".
-                "<b>Yangi holat:</b> {$statusText}\n".
+            $message = "<b>📁 Fayl holati yangilandi!</b>\n\n" .
+                "<b>Fayl nomi:</b> {$file->name}\n" .
+                "<b>Asl fayl:</b> {$file->original_filename}\n" .
+                "<b>Yangi holat:</b> {$statusText}\n" .
                 "<b>Fayl ID:</b> #{$file->id}";
 
             if ($adminNotes) {
@@ -217,7 +217,7 @@ class FilesController extends Controller
     private function sendFeedbackFile(string $botToken, string $chatId, string $filePath)
     {
         try {
-            $fullPath = storage_path('app/public/'.$filePath);
+            $fullPath = storage_path('app/public/' . $filePath);
 
             if (! file_exists($fullPath)) {
                 Log::error('Feedback file not found', ['path' => $fullPath]);
@@ -345,7 +345,7 @@ class FilesController extends Controller
             // Return file as download
             return response($fileContent)
                 ->header('Content-Type', $file->mime_type ?: 'application/octet-stream')
-                ->header('Content-Disposition', 'attachment; filename="'.$filename.'"')
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
                 ->header('Content-Length', strlen($fileContent))
                 ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
                 ->header('Pragma', 'no-cache')

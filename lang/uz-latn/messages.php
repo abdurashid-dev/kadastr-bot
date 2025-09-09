@@ -76,7 +76,7 @@ return [
     'upload_date' => 'Yuklangan sana',
     'approve' => 'Tasdiqlash',
     'reject' => 'Rad etish',
-    'pending' => 'Kutilmoqda',
+    'pending' => 'Jarayonda',
     'waiting' => 'Kutish',
     'accepted' => 'Qabul qilingan',
     'rejected' => 'Rad etilgan',

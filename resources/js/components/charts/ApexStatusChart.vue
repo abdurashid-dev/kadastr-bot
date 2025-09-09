@@ -27,7 +27,7 @@ const props = defineProps({
 });
 
 const statusLabels = {
-  pending: "Kutilmoqda",
+  pending: "Jarayonda",
   waiting: "Bino inshoatga yuborildi",
   accepted: "Tasdiqlangan",
   rejected: "Rad etilgan",
