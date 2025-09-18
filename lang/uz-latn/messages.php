@@ -109,6 +109,36 @@ return [
     'accepted_files' => 'Qabul qilingan fayllar',
     'rejected_files' => 'Rad etilgan fayllar',
 
+    // Dashboard
+    'dashboard_title' => 'Boshqaruv paneli',
+    'overview' => 'Umumiy ko\'rinish',
+    'recent_activity' => 'So\'nggi faoliyat',
+    'file_statistics' => 'Fayl statistikasi',
+    'files_by_status' => 'Holat bo\'yicha fayllar',
+    'files_by_region' => 'Viloyat bo\'yicha fayllar',
+    'files_by_type' => 'Tur bo\'yicha fayllar',
+    'monthly_trend' => 'Oylik tendentsiya',
+    'upload_trend' => 'Yuklash tendentsiyasi',
+    'registered_count' => 'Migratsiya bo\'lganlar soni',
+    'not_registered_count' => 'Migratsiya bo\'lmaganlar soni',
+    'accepted_note' => 'Tasdiqlash izohi',
+    'acceptance_info' => 'Tasdiqlash ma\'lumotlari',
+    'recent_files_title' => 'So\'nggi yuklangan fayllar',
+    'no_recent_files' => 'So\'nggi fayllar yo\'q',
+    'file_uploaded_by' => 'Yuklagan',
+
+    // Period Filters
+    'period_filter' => 'Davr filtri',
+    'day' => 'Kun',
+    'week' => 'Hafta',
+    'month' => 'Oy',
+    'hourly_trend' => 'Soatlik yuklash trendi',
+    'daily_trend' => 'Kunlik yuklash trendi',
+    'monthly_trend' => 'Oylik yuklash trendi',
+    'files_uploaded' => 'Yuklangan fayllar',
+    'custom_range' => 'Maxsus oraliq',
+    'custom_date_range' => 'Maxsus sana oralig\'i',
+
     // Date Filters
     'date_from' => 'Boshlanish sanasi',
     'date_to' => 'Tugash sanasi',

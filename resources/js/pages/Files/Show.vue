@@ -30,10 +30,14 @@ import {
   X,
   LoaderCircle,
 } from "lucide-vue-next";
-import { ref } from "vue";
+import { ref, computed } from "vue";
 
 const props = defineProps({
   file: {
+    type: Object,
+    required: true,
+  },
+  user: {
     type: Object,
     required: true,
   },
@@ -50,12 +54,47 @@ const breadcrumbs = [
   },
 ];
 
+// Status options based on user role
+const statusOptions = computed(() => {
+  const baseOptions = [
+    { value: "pending", label: "Jarayonda" },
+    { value: "rejected", label: "Rad etilgan" },
+  ];
+
+  // Checkers can set status to waiting
+  if (props.user.role === "checker") {
+    return [...baseOptions, { value: "waiting", label: "Bino inshoatga yuborish" }];
+  }
+
+  // Registrators can set status to accepted
+  if (props.user.role === "registrator") {
+    return [...baseOptions, { value: "accepted", label: "Tasdiqlangan" }];
+  }
+
+  // CEOs can set any status
+  if (props.user.role === "ceo") {
+    return [
+      ...baseOptions,
+      { value: "waiting", label: "Bino inshoatga yuborish" },
+      { value: "accepted", label: "Tasdiqlangan" },
+    ];
+  }
+
+  // Regular users can only see basic options
+  return baseOptions;
+});
+
 const statusDialogOpen = ref(false);
 const newStatus = ref(props.file.status);
 const adminNotes = ref(props.file.admin_notes || "");
 const feedbackFiles = ref([]);
 const fileInput = ref(null);
 const isUpdatingStatus = ref(false);
+
+// Accepted status specific fields
+const registeredCount = ref(0);
+const notRegisteredCount = ref(0);
+const acceptedNote = ref("");
 
 const getFileIcon = (fileType) => {
   switch (fileType) {
@@ -88,6 +127,13 @@ const getStatusBadge = (status) => {
         icon: XCircle,
         text: "Rad etilgan",
         color: "text-red-600",
+      };
+    case "waiting":
+      return {
+        variant: "secondary",
+        icon: Clock,
+        text: "Bino inshoatga yuborildi",
+        color: "text-blue-600",
       };
     default:
       return {
@@ -126,6 +172,12 @@ const openStatusDialog = () => {
   newStatus.value = props.file.status;
   adminNotes.value = props.file.admin_notes || "";
   feedbackFiles.value = [];
+  
+  // Initialize accepted status fields
+  registeredCount.value = props.file.registered_count || 0;
+  notRegisteredCount.value = props.file.not_registered_count || 0;
+  acceptedNote.value = props.file.accepted_note || "";
+  
   statusDialogOpen.value = true;
 };
 
@@ -157,6 +209,13 @@ const updateStatus = () => {
   const formData = new FormData();
   formData.append("status", newStatus.value);
   formData.append("admin_notes", adminNotes.value);
+
+  // Add accepted status fields if status is accepted
+  if (newStatus.value === "accepted") {
+    formData.append("registered_count", registeredCount.value);
+    formData.append("not_registered_count", notRegisteredCount.value);
+    formData.append("accepted_note", acceptedNote.value);
+  }
 
   // Append multiple feedback files
   feedbackFiles.value.forEach((file, index) => {
@@ -275,6 +334,25 @@ const deleteFile = () => {
               <Label class="text-sm font-medium text-muted-foreground">Admin izohi</Label>
               <p class="text-sm mt-1 p-3 bg-muted rounded-md">{{ file.admin_notes }}</p>
             </div>
+
+            <!-- Accepted status information -->
+            <div
+              v-if="file.status === 'accepted'"
+              class="text-xs bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-3 py-2 rounded mt-2"
+            >
+              <div class="font-medium text-green-800 dark:text-green-200 mb-1">Tasdiqlash ma'lumotlari:</div>
+              <div class="space-y-1 text-green-700 dark:text-green-300">
+                <div v-if="file.registered_count !== null">
+                  <strong>Migratsiya bo'lganlar:</strong> {{ file.registered_count }}
+                </div>
+                <div v-if="file.not_registered_count !== null">
+                  <strong>Migratsiya bo'lmaganlar:</strong> {{ file.not_registered_count }}
+                </div>
+                <div v-if="file.accepted_note" class="mt-1">
+                  <strong>Izoh:</strong> {{ file.accepted_note }}
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -325,11 +403,15 @@ const deleteFile = () => {
             <select
               id="status"
               v-model="newStatus"
-              class="w-full mt-1 px-3 py-2 border rounded-md"
+              class="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
             >
-              <option value="pending">Jarayonda</option>
-              <option value="accepted">Tasdiqlangan</option>
-              <option value="rejected">Rad etilgan</option>
+              <option
+                v-for="option in statusOptions"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </option>
             </select>
           </div>
 
@@ -339,8 +421,49 @@ const deleteFile = () => {
               id="notes"
               v-model="adminNotes"
               placeholder="Ushbu fayl haqida izoh qo'shing..."
-              class="mt-1"
+              class="mt-1 min-h-[80px]"
             />
+          </div>
+
+          <!-- Accepted status specific fields -->
+          <div v-if="newStatus === 'accepted'" class="space-y-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+            <h4 class="text-sm font-medium text-green-800 dark:text-green-200">Tasdiqlash ma'lumotlari</h4>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <Label for="registered_count">Migratsiya bo'lganlar soni</Label>
+                <input
+                  id="registered_count"
+                  v-model="registeredCount"
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  class="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              
+              <div>
+                <Label for="not_registered_count">Migratsiya bo'lmaganlar soni</Label>
+                <input
+                  id="not_registered_count"
+                  v-model="notRegisteredCount"
+                  type="number"
+                  min="0"
+                  placeholder="0"
+                  class="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label for="accepted_note">Tasdiqlash izohi</Label>
+              <Textarea
+                id="accepted_note"
+                v-model="acceptedNote"
+                placeholder="Tasdiqlash haqida qo'shimcha ma'lumot..."
+                class="mt-1 min-h-[60px]"
+              />
+            </div>
           </div>
 
           <div>

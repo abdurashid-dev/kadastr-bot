@@ -180,7 +180,7 @@ const formatDate = (dateString) => {
   const year = dateObj.getFullYear();
   const hours = dateObj.getHours().toString().padStart(2, "0");
   const minutes = dateObj.getMinutes().toString().padStart(2, "0");
-  
+
   return `${day}.${month}.${year} ${hours}:${minutes}`;
 };
 
@@ -220,12 +220,12 @@ const openStatusDialog = (file) => {
   newStatus.value = file.status;
   adminNotes.value = file.admin_notes || "";
   feedbackFiles.value = [];
-  
+
   // Initialize accepted status fields
   registeredCount.value = file.registered_count || 0;
   notRegisteredCount.value = file.not_registered_count || 0;
   acceptedNote.value = file.accepted_note || "";
-  
+
   statusDialogOpen.value = true;
 };
 
@@ -479,19 +479,23 @@ const deleteFile = (file) => {
                     >
                       <strong>Izoh:</strong> {{ file.admin_notes }}
                     </div>
-                    
+
                     <!-- Accepted status information -->
                     <div
                       v-if="file.status === 'accepted'"
                       class="text-xs bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-2 py-1 rounded mt-2"
                     >
-                      <div class="font-medium text-green-800 dark:text-green-200 mb-1">Tasdiqlash ma'lumotlari:</div>
+                      <div class="font-medium text-green-800 dark:text-green-200 mb-1">
+                        Tasdiqlash ma'lumotlari:
+                      </div>
                       <div class="space-y-1 text-green-700 dark:text-green-300">
                         <div v-if="file.registered_count !== null">
-                          <strong>Migratsiya bo'lganlar:</strong> {{ file.registered_count }}
+                          <strong>Migratsiya bo'lganlar:</strong>
+                          {{ file.registered_count }}
                         </div>
                         <div v-if="file.not_registered_count !== null">
-                          <strong>Migratsiya bo'lmaganlar:</strong> {{ file.not_registered_count }}
+                          <strong>Migratsiya bo'lmaganlar:</strong>
+                          {{ file.not_registered_count }}
                         </div>
                         <div v-if="file.accepted_note" class="mt-1">
                           <strong>Izoh:</strong> {{ file.accepted_note }}
@@ -626,9 +630,14 @@ const deleteFile = (file) => {
           </div>
 
           <!-- Accepted status specific fields -->
-          <div v-if="newStatus === 'accepted'" class="space-y-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-            <h4 class="text-sm font-medium text-green-800 dark:text-green-200">Tasdiqlash ma'lumotlari</h4>
-            
+          <div
+            v-if="newStatus === 'accepted'"
+            class="space-y-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800"
+          >
+            <h4 class="text-sm font-medium text-green-800 dark:text-green-200">
+              Tasdiqlash ma'lumotlari
+            </h4>
+
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <Label for="registered_count">Migratsiya bo'lganlar soni</Label>
@@ -641,7 +650,7 @@ const deleteFile = (file) => {
                   class="mt-1"
                 />
               </div>
-              
+
               <div>
                 <Label for="not_registered_count">Migratsiya bo'lmaganlar soni</Label>
                 <Input
@@ -654,7 +663,7 @@ const deleteFile = (file) => {
                 />
               </div>
             </div>
-            
+
             <div>
               <Label for="accepted_note">Tasdiqlash izohi</Label>
               <Textarea

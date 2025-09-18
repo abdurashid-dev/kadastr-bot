@@ -34,6 +34,7 @@ class UserController extends Controller
     private function getRegions(): array
     {
         return [
+            'Бошқарма',
             'Қувасой шахар',
             'Фарғона шахар',
             'Қўқон шахар',

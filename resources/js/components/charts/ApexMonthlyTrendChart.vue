@@ -6,10 +6,10 @@
       <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
         {{
           selectedPeriod === "day"
-            ? "Soatlik yuklash trendi"
+            ? "Soatlik trend"
             : selectedPeriod === "week"
-            ? "Kunlik yuklash trendi"
-            : "Oylik yuklash trendi"
+            ? "Kunlik trend"
+            : "Oylik trend"
         }}
       </h3>
 
@@ -39,15 +39,22 @@
 
 <script setup>
 import { computed, ref } from "vue";
+import { useTranslations } from '@/composables/useTranslations';
+
+const { t } = useTranslations();
 
 const props = defineProps({
   data: {
     type: Object,
     required: true,
   },
+  period: {
+    type: String,
+    default: 'month'
+  }
 });
 
-const selectedPeriod = ref("month");
+const selectedPeriod = ref(props.period);
 
 const periods = [
   { value: "day", label: "Kun" },
@@ -74,7 +81,7 @@ const chartData = computed(() => {
 
 const chartSeries = computed(() => [
   {
-    name: "Files Uploaded",
+    name: t("messages.files_uploaded"),
     data: chartData.value.map(([, count]) => count),
   },
 ]);
@@ -168,11 +175,11 @@ const chartOptions = computed(() => ({
         return `${day}.${month}.${year} ${hours}:${minutes}`;
       },
     },
-    y: {
-      formatter: function (value) {
-        return `${value} files`;
-      },
-    },
+        y: {
+          formatter: function (value) {
+            return `${value} ${t("messages.files").toLowerCase()}`;
+          },
+        },
   },
   markers: {
     size: 4,

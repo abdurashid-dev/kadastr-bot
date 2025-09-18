@@ -52,6 +52,7 @@ class FilesController extends Controller
 
         // Get predefined regions list
         $regions = [
+            'Бошқарма',
             'Қувасой шахар',
             'Фарғона шахар',
             'Қўқон шахар',
@@ -94,12 +95,13 @@ class FilesController extends Controller
         ]);
     }
 
-    public function show(UploadedFile $file): Response
+    public function show(Request $request, UploadedFile $file): Response
     {
         $file->load('user');
 
         return Inertia::render('Files/Show', [
             'file' => $file,
+            'user' => $request->user(),
         ]);
     }
 

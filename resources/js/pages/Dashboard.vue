@@ -1,15 +1,14 @@
 <script setup>
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import AppLayout from "@/layouts/AppLayout.vue";
-import { Head, Link } from "@inertiajs/vue3";
+import { Head, Link, router } from "@inertiajs/vue3";
 import ApexStatusChart from "@/components/charts/ApexStatusChart.vue";
 import ApexRegionChart from "@/components/charts/ApexRegionChart.vue";
 import ApexFilesByRegionChart from "@/components/charts/ApexFilesByRegionChart.vue";
 import ApexMonthlyTrendChart from "@/components/charts/ApexMonthlyTrendChart.vue";
-
 const breadcrumbs = [
   {
-    title: "Dashboard",
+    title: "Boshqaruv paneli",
     href: "/dashboard",
   },
 ];
@@ -23,7 +22,53 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  filters: {
+    type: Object,
+    default: () => ({
+      period: "month",
+      start_date: null,
+      end_date: null,
+    }),
+  },
 });
+
+// Simple filtering
+const selectedPeriod = ref(props.filters.period || "month");
+const startDate = ref(props.filters.start_date || "");
+const endDate = ref(props.filters.end_date || "");
+
+// Watch for period changes and update data
+watch(selectedPeriod, () => {
+  updateDashboard();
+});
+
+const updateDashboard = () => {
+  const params = {
+    period: selectedPeriod.value,
+  };
+
+  if (startDate.value && endDate.value) {
+    params.start_date = startDate.value;
+    params.end_date = endDate.value;
+  }
+
+  router.get("/dashboard", params, {
+    preserveState: true,
+    preserveScroll: true,
+  });
+};
+
+const applyDateRange = () => {
+  if (startDate.value && endDate.value) {
+    updateDashboard();
+  }
+};
+
+const clearDateRange = () => {
+  startDate.value = "";
+  endDate.value = "";
+  updateDashboard();
+};
 
 // Computed properties for statistics
 const totalFiles = computed(() => props.fileStats.total_files || 0);
@@ -44,23 +89,23 @@ const statusCounts = computed(() => ({
 const getStatusLabel = (status) => {
   const labels = {
     pending: "Jarayonda",
-    waiting: "Bino inshoatga yuborildi",
+    waiting: "Kutilmoqda",
     accepted: "Tasdiqlangan",
     rejected: "Rad etilgan",
   };
   return labels[status] || status;
 };
 
-// Get status badge class
-const getStatusBadgeClass = (status) => {
-  const classes = {
-    pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-    waiting: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-    accepted: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-    rejected: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+// Get status color
+const getStatusColor = (status) => {
+  const colors = {
+    pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+    waiting: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+    accepted: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    rejected: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
   };
   return (
-    classes[status] || "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+    colors[status] || "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
   );
 };
 
@@ -72,13 +117,13 @@ const formatDate = (date) => {
   const year = dateObj.getFullYear();
   const hours = dateObj.getHours().toString().padStart(2, "0");
   const minutes = dateObj.getMinutes().toString().padStart(2, "0");
-  
+
   return `${day}.${month}.${year} ${hours}:${minutes}`;
 };
 </script>
 
 <template>
-  <Head title="Dashboard" />
+  <Head title="Boshqaruv paneli" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
@@ -119,16 +164,14 @@ const formatDate = (date) => {
                 />
               </svg>
             </div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">My Files</h3>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Fayllar</h3>
           </div>
-          <p class="text-gray-600 dark:text-gray-400 mb-4">
-            Sizning yuklangan fayllaringizni va ularning tasdiqlanish holatini ko'rish
-          </p>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">Fayl boshqaruvi</p>
           <Link
             href="/approval/history"
             class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Tarixni ko'rish
+            So'nggi faoliyat
             <svg
               class="w-4 h-4 ml-2"
               fill="none"
@@ -168,18 +211,14 @@ const formatDate = (date) => {
                 />
               </svg>
             </div>
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-              Fayllarni ko'rish
-            </h3>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Fayllar</h3>
           </div>
-          <p class="text-gray-600 dark:text-gray-400 mb-4">
-            Kutilayotgan fayllarni ko'rish va tasdiqlash/rad etish
-          </p>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">Kutilayotgan fayllar</p>
           <Link
             href="/approval/pending"
             class="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors"
           >
-            Kutilayotgan fayllarni ko'rish
+            Kutilayotgan fayllar
             <svg
               class="w-4 h-4 ml-2"
               fill="none"
@@ -203,7 +242,7 @@ const formatDate = (date) => {
         >
           <div class="flex items-center mb-4">
             <div
-              class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mr-3"
+              class="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center mr-3"
             >
               <svg
                 class="w-6 h-6 text-white"
@@ -220,17 +259,70 @@ const formatDate = (date) => {
               </svg>
             </div>
             <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-              Oxirgi tasdiqlash
+              Kutilayotgan fayllar
             </h3>
           </div>
-          <p class="text-gray-600 dark:text-gray-400 mb-4">
-            Final review and approval of checker-approved files
-          </p>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">Kutilayotgan fayllar</p>
           <Link
             href="/approval/waiting"
-            class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
           >
-            Review Waiting
+            Kutilayotgan fayllar
+            <svg
+              class="w-4 h-4 ml-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </Link>
+        </div>
+
+        <!-- Admin Role Card -->
+        <div
+          v-if="user.role === 'admin'"
+          class="bg-white dark:bg-gray-800 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border p-6 hover:shadow-lg transition-shadow"
+        >
+          <div class="flex items-center mb-4">
+            <div
+              class="w-10 h-10 bg-purple-500 rounded-lg flex items-center justify-center mr-3"
+            >
+              <svg
+                class="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+              Sozlamalar
+            </h3>
+          </div>
+          <p class="text-gray-600 dark:text-gray-400 mb-4">Foydalanuvchi boshqaruvi</p>
+          <Link
+            href="/users"
+            class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            Foydalanuvchilar
             <svg
               class="w-4 h-4 ml-2"
               fill="none"
@@ -253,7 +345,7 @@ const formatDate = (date) => {
         class="bg-white dark:bg-gray-800 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border p-6"
       >
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          Quick Overview
+          Umumiy ko'rinish
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -266,27 +358,104 @@ const formatDate = (date) => {
             <div class="text-2xl font-bold text-green-600 dark:text-green-400">
               {{ statusCounts.accepted }}
             </div>
-            <div class="text-sm text-green-600 dark:text-green-400">Tasdiqlangan</div>
+            <div class="text-sm text-green-600 dark:text-green-400">
+              Tasdiqlangan fayllar
+            </div>
           </div>
           <div class="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
             <div class="text-2xl font-bold text-red-600 dark:text-red-400">
               {{ statusCounts.rejected }}
             </div>
-            <div class="text-sm text-red-600 dark:text-red-400">Rad etilgan</div>
+            <div class="text-sm text-red-600 dark:text-red-400">Rad etilgan fayllar</div>
           </div>
           <div class="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
             <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
               {{ statusCounts.pending }}
             </div>
-            <div class="text-sm text-yellow-600 dark:text-yellow-400">Jarayonda</div>
+            <div class="text-sm text-yellow-600 dark:text-yellow-400">
+              Jarayondagi fayllar
+            </div>
           </div>
           <div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
               {{ statusCounts.waiting }}
             </div>
             <div class="text-sm text-blue-600 dark:text-blue-400">
-              Bino inshoatga yuborildi
+              Kutilayotgan fayllar
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Simple Filters -->
+      <div
+        class="bg-white dark:bg-gray-800 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border p-6"
+      >
+        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+          Davr filtri
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <!-- Period Filter -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Davr
+            </label>
+            <select
+              v-model="selectedPeriod"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="day">Kun</option>
+              <option value="week">Hafta</option>
+              <option value="month">Oy</option>
+              <option value="year">Yil</option>
+            </select>
+          </div>
+
+          <!-- Start Date -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Boshlanish sanasi
+            </label>
+            <input
+              v-model="startDate"
+              type="date"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <!-- End Date -->
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Tugash sanasi
+            </label>
+            <input
+              v-model="endDate"
+              type="date"
+              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-end gap-2">
+            <button
+              @click="applyDateRange"
+              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition-colors"
+            >
+              Qo'llash
+            </button>
+            <button
+              @click="clearDateRange"
+              class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 transition-colors"
+            >
+              Tozalash
+            </button>
           </div>
         </div>
       </div>
@@ -308,7 +477,7 @@ const formatDate = (date) => {
 
       <!-- Monthly Trend Chart -->
       <div class="grid grid-cols-1 lg:grid-cols-1 gap-6">
-        <ApexMonthlyTrendChart :data="monthlyStats" />
+        <ApexMonthlyTrendChart :data="monthlyStats" :period="selectedPeriod" />
       </div>
 
       <!-- Recent Files -->
@@ -316,7 +485,7 @@ const formatDate = (date) => {
         class="bg-white dark:bg-gray-800 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border p-6"
       >
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          So'nggi yuklangan fayllar
+          So'nggi fayllar
         </h2>
         <div v-if="recentFiles.length > 0" class="space-y-3">
           <div
@@ -353,13 +522,13 @@ const formatDate = (date) => {
             </div>
             <div class="flex items-center space-x-2">
               <span
-                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                :class="getStatusBadgeClass(file.status)"
+                :class="getStatusColor(file.status)"
+                class="px-2 py-1 rounded-full text-xs font-medium"
               >
                 {{ getStatusLabel(file.status) }}
               </span>
               <Link
-                :href="route('files.show', file.id)"
+                :href="`/files/${file.id}`"
                 class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
               >
                 <svg
@@ -380,20 +549,7 @@ const formatDate = (date) => {
           </div>
         </div>
         <div v-else class="text-center py-8 text-gray-500 dark:text-gray-400">
-          <svg
-            class="w-12 h-12 mx-auto mb-4 text-gray-300 dark:text-gray-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          <p>Hali hech qanday fayl yuklanmagan</p>
+          So'nggi fayllar yo'q
         </div>
       </div>
     </div>
