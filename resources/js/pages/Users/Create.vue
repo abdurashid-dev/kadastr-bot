@@ -147,7 +147,7 @@ const getRoleLabel = (role) => {
   const labels = {
     user: "Foydalanuvchi",
     checker: "Tekshiruvchi",
-    registrator: "Ro'yxatga oluvchi",
+    registrator: "Bino inshoat xodimi",
     ceo: "Rahbar",
   };
   return labels[role] || role;

@@ -191,7 +191,7 @@ const getRoleLabel = (role) => {
   const labels = {
     user: "Foydalanuvchi",
     checker: "Tekshiruvchi",
-    registrator: "Ro'yxatga oluvchi",
+    registrator: "Bino inshoat xodimi",
     ceo: "Rahbar",
   };
   return labels[role] || role;
@@ -214,7 +214,7 @@ const formatDate = (dateString) => {
   const year = dateObj.getFullYear();
   const hours = dateObj.getHours().toString().padStart(2, "0");
   const minutes = dateObj.getMinutes().toString().padStart(2, "0");
-  
+
   return `${day}.${month}.${year} ${hours}:${minutes}`;
 };
 </script>
@@ -324,7 +324,7 @@ const formatDate = (dateString) => {
           </div>
         </div>
 
-        <!-- Registrators -->
+        <!-- Bino inshoat xodimlari -->
         <div
           class="group relative overflow-hidden rounded-xl bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/50 dark:to-amber-900/30 border border-amber-200/50 dark:border-amber-800/50 hover:shadow-lg transition-all duration-300"
         >

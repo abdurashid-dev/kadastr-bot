@@ -31,7 +31,9 @@
               </div>
               <div class="ml-5 w-0 flex-1">
                 <dl>
-                  <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+                  <dt
+                    class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
+                  >
                     Jami foydalanuvchilar
                   </dt>
                   <dd class="text-lg font-medium text-gray-900 dark:text-white">
@@ -56,7 +58,9 @@
               </div>
               <div class="ml-5 w-0 flex-1">
                 <dl>
-                  <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
+                  <dt
+                    class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate"
+                  >
                     {{ getRoleLabel(role) }}
                   </dt>
                   <dd class="text-lg font-medium text-gray-900 dark:text-white">
@@ -80,15 +84,13 @@
           </p>
         </div>
         <ul class="divide-y divide-gray-200 dark:divide-gray-700">
-          <li
-            v-for="user in stats.recent_users"
-            :key="user.id"
-            class="px-4 py-4 sm:px-6"
-          >
+          <li v-for="user in stats.recent_users" :key="user.id" class="px-4 py-4 sm:px-6">
             <div class="flex items-center justify-between">
               <div class="flex items-center">
                 <div class="flex-shrink-0 h-10 w-10">
-                  <div class="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                  <div
+                    class="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center"
+                  >
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
                       {{ user.name.charAt(0).toUpperCase() }}
                     </span>
@@ -123,41 +125,37 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { Link } from '@inertiajs/vue3'
-import AppLayout from '@/layouts/AppLayout.vue'
-import {
-  ArrowLeftIcon,
-  UsersIcon,
-  UserIcon,
-} from '@heroicons/vue/24/outline'
+import { computed } from "vue";
+import { Link } from "@inertiajs/vue3";
+import AppLayout from "@/layouts/AppLayout.vue";
+import { ArrowLeftIcon, UsersIcon, UserIcon } from "@heroicons/vue/24/outline";
 
 const props = defineProps({
   stats: {
     type: Object,
     required: true,
   },
-})
+});
 
 const getRoleLabel = (role) => {
   const labels = {
-    user: 'Foydalanuvchi',
-    checker: 'Tekshiruvchi',
-    registrator: 'Ro\'yxatga oluvchi',
-    ceo: 'Rahbar',
-  }
-  return labels[role] || role
-}
+    user: "Foydalanuvchi",
+    checker: "Tekshiruvchi",
+    registrator: "Bino inshoat xodimi",
+    ceo: "Rahbar",
+  };
+  return labels[role] || role;
+};
 
 const getRoleBadgeClass = (role) => {
   const classes = {
-    user: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
-    checker: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-    registrator: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-    ceo: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
-  }
-  return classes[role] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
-}
+    user: "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
+    checker: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+    registrator: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+    ceo: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
+  };
+  return classes[role] || "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
+};
 
 const formatDate = (date) => {
   const dateObj = new Date(date);
@@ -166,7 +164,7 @@ const formatDate = (date) => {
   const year = dateObj.getFullYear();
   const hours = dateObj.getHours().toString().padStart(2, "0");
   const minutes = dateObj.getMinutes().toString().padStart(2, "0");
-  
+
   return `${day}.${month}.${year} ${hours}:${minutes}`;
-}
+};
 </script>

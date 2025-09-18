@@ -10,7 +10,7 @@
             Bino inshoatga yuborilgan fayllar
           </h1>
           <p class="text-sm text-gray-600 dark:text-gray-400">
-            Registrator tomonidan yakuniy ko'rib chiqish uchun kutayotgan fayllar
+            Bino inshoat xodimi tomonidan yakuniy ko'rib chiqish uchun kutayotgan fayllar
           </p>
         </div>
         <div class="flex items-center gap-2">
@@ -537,7 +537,7 @@ const formatDate = (dateString) => {
   const year = dateObj.getFullYear();
   const hours = dateObj.getHours().toString().padStart(2, "0");
   const minutes = dateObj.getMinutes().toString().padStart(2, "0");
-  
+
   return `${day}.${month}.${year} ${hours}:${minutes}`;
 };
 

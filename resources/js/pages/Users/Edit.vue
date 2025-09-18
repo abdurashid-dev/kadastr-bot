@@ -66,12 +66,22 @@ const formatPhoneWithMask = (digits) => {
   if (digits.length === 0) return "+998";
   if (digits.length <= 2) return `+998(${digits}`;
   if (digits.length <= 5) return `+998(${digits.substring(0, 2)})${digits.substring(2)}`;
-  if (digits.length <= 7) return `+998(${digits.substring(0, 2)})${digits.substring(2, 5)}-${digits.substring(5)}`;
-  if (digits.length <= 9) return `+998(${digits.substring(0, 2)})${digits.substring(2, 5)}-${digits.substring(5, 7)}-${digits.substring(7)}`;
-  
+  if (digits.length <= 7)
+    return `+998(${digits.substring(0, 2)})${digits.substring(2, 5)}-${digits.substring(
+      5
+    )}`;
+  if (digits.length <= 9)
+    return `+998(${digits.substring(0, 2)})${digits.substring(2, 5)}-${digits.substring(
+      5,
+      7
+    )}-${digits.substring(7)}`;
+
   // Limit to 9 digits
   const limitedDigits = digits.substring(0, 9);
-  return `+998(${limitedDigits.substring(0, 2)})${limitedDigits.substring(2, 5)}-${limitedDigits.substring(5, 7)}-${limitedDigits.substring(7)}`;
+  return `+998(${limitedDigits.substring(0, 2)})${limitedDigits.substring(
+    2,
+    5
+  )}-${limitedDigits.substring(5, 7)}-${limitedDigits.substring(7)}`;
 };
 
 const formatPhoneNumber = (value) => {
@@ -140,7 +150,7 @@ const getRoleLabel = (role) => {
   const labels = {
     user: "Foydalanuvchi",
     checker: "Tekshiruvchi",
-    registrator: "Ro'yxatga oluvchi",
+    registrator: "Bino inshoat xodimi",
     ceo: "Rahbar",
   };
   return labels[role] || role;
@@ -211,9 +221,7 @@ const getRoleIcon = (role) => {
             <User class="mr-2 h-5 w-5" />
             Foydalanuvchi ma'lumotlari
           </CardTitle>
-          <CardDescription>
-            Foydalanuvchi ma'lumotlarini yangilang
-          </CardDescription>
+          <CardDescription> Foydalanuvchi ma'lumotlarini yangilang </CardDescription>
         </CardHeader>
         <CardContent class="space-y-6">
           <form @submit.prevent="submit" class="space-y-6">
@@ -339,9 +347,7 @@ const getRoleIcon = (role) => {
 
             <!-- Password Field -->
             <div class="space-y-2">
-              <Label for="password" class="text-sm font-medium">
-                Yangi parol
-              </Label>
+              <Label for="password" class="text-sm font-medium"> Yangi parol </Label>
               <Input
                 id="password"
                 v-model="form.password"

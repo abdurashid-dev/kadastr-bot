@@ -1,89 +1,107 @@
 <script setup>
-import AppLayout from '@/layouts/AppLayout.vue'
-import { Head, Link, router } from '@inertiajs/vue3'
-import { ref } from 'vue'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
-import { ArrowLeft, Edit, Save, X, FileText } from 'lucide-vue-next'
+import AppLayout from "@/layouts/AppLayout.vue";
+import { Head, Link, router } from "@inertiajs/vue3";
+import { ref } from "vue";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { ArrowLeft, Edit, Save, X, FileText } from "lucide-vue-next";
 
 const props = defineProps({
   user: Object,
-})
+});
 
-const editing = ref(false)
+const editing = ref(false);
 const form = ref({
   name: props.user.name,
   email: props.user.email,
-  phone_number: props.user.phone_number || '',
-  region: props.user.region || '',
-})
+  phone_number: props.user.phone_number || "",
+  region: props.user.region || "",
+});
 
 const startEditing = () => {
-  editing.value = true
+  editing.value = true;
   form.value = {
     name: props.user.name,
     email: props.user.email,
-    phone_number: props.user.phone_number || '',
-    region: props.user.region || '',
-  }
-}
+    phone_number: props.user.phone_number || "",
+    region: props.user.region || "",
+  };
+};
 
 const cancelEditing = () => {
-  editing.value = false
+  editing.value = false;
   form.value = {
     name: props.user.name,
     email: props.user.email,
-    phone_number: props.user.phone_number || '',
-    region: props.user.region || '',
-  }
-}
+    phone_number: props.user.phone_number || "",
+    region: props.user.region || "",
+  };
+};
 
 const saveChanges = async () => {
   try {
     await router.put(`/users/${props.user.id}`, form.value, {
       preserveState: true,
-    })
-    editing.value = false
+    });
+    editing.value = false;
   } catch (error) {
-    console.error('Error updating user:', error)
+    console.error("Error updating user:", error);
   }
-}
+};
 
 const updateRole = async (newRole) => {
   try {
-    await router.put(`/users/${props.user.id}/role`, { role: newRole }, {
-      preserveState: true,
-    })
+    await router.put(
+      `/users/${props.user.id}/role`,
+      { role: newRole },
+      {
+        preserveState: true,
+      }
+    );
   } catch (error) {
-    console.error('Error updating user role:', error)
+    console.error("Error updating user role:", error);
   }
-}
+};
 
 const getRoleColor = (role) => {
   const colors = {
-    user: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
-    checker: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    registrator: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    ceo: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-  }
-  return colors[role] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-}
+    user: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
+    checker: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+    registrator: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+    ceo: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  };
+  return colors[role] || "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200";
+};
 
 const getStatusColor = (status) => {
   const colors = {
-    pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    waiting: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    accepted: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    rejected: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-  }
-  return colors[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
-}
+    pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+    waiting: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+    accepted: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+    rejected: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  };
+  return (
+    colors[status] || "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200"
+  );
+};
 
 const formatDate = (dateString) => {
   const dateObj = new Date(dateString);
@@ -92,9 +110,9 @@ const formatDate = (dateString) => {
   const year = dateObj.getFullYear();
   const hours = dateObj.getHours().toString().padStart(2, "0");
   const minutes = dateObj.getMinutes().toString().padStart(2, "0");
-  
+
   return `${day}.${month}.${year} ${hours}:${minutes}`;
-}
+};
 </script>
 
 <template>
@@ -120,7 +138,9 @@ const formatDate = (dateString) => {
               <div class="flex items-center space-x-4">
                 <Avatar class="h-20 w-20">
                   <AvatarImage :src="user.avatar" :alt="user.name" />
-                  <AvatarFallback class="text-2xl">{{ user.name.charAt(0).toUpperCase() }}</AvatarFallback>
+                  <AvatarFallback class="text-2xl">{{
+                    user.name.charAt(0).toUpperCase()
+                  }}</AvatarFallback>
                 </Avatar>
                 <div class="flex-1">
                   <CardTitle class="text-2xl">{{ user.name }}</CardTitle>
@@ -140,11 +160,7 @@ const formatDate = (dateString) => {
                 </div>
                 <div v-else>
                   <Label for="name" class="text-sm font-medium">Name</Label>
-                  <Input
-                    id="name"
-                    v-model="form.name"
-                    class="mt-1"
-                  />
+                  <Input id="name" v-model="form.name" class="mt-1" />
                 </div>
 
                 <div v-if="!editing">
@@ -153,26 +169,19 @@ const formatDate = (dateString) => {
                 </div>
                 <div v-else>
                   <Label for="email" class="text-sm font-medium">Email</Label>
-                  <Input
-                    id="email"
-                    v-model="form.email"
-                    type="email"
-                    class="mt-1"
-                  />
+                  <Input id="email" v-model="form.email" type="email" class="mt-1" />
                 </div>
 
                 <div v-if="user.phone_number">
                   <div v-if="!editing">
                     <Label class="text-sm font-medium">Phone</Label>
-                    <p class="text-sm text-muted-foreground mt-1">{{ user.phone_number }}</p>
+                    <p class="text-sm text-muted-foreground mt-1">
+                      {{ user.phone_number }}
+                    </p>
                   </div>
                   <div v-else>
                     <Label for="phone" class="text-sm font-medium">Phone</Label>
-                    <Input
-                      id="phone"
-                      v-model="form.phone_number"
-                      class="mt-1"
-                    />
+                    <Input id="phone" v-model="form.phone_number" class="mt-1" />
                   </div>
                 </div>
 
@@ -183,11 +192,7 @@ const formatDate = (dateString) => {
                   </div>
                   <div v-else>
                     <Label for="region" class="text-sm font-medium">Region</Label>
-                    <Input
-                      id="region"
-                      v-model="form.region"
-                      class="mt-1"
-                    />
+                    <Input id="region" v-model="form.region" class="mt-1" />
                   </div>
                 </div>
 
@@ -202,10 +207,10 @@ const formatDate = (dateString) => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="user">User</SelectItem>
-                      <SelectItem value="checker">Checker</SelectItem>
-                      <SelectItem value="registrator">Registrator</SelectItem>
-                      <SelectItem value="ceo">CEO</SelectItem>
+                      <SelectItem value="user">Foydalanuvchi</SelectItem>
+                      <SelectItem value="checker">Tekshiruvchi</SelectItem>
+                      <SelectItem value="registrator">Bino inshoat xodimi</SelectItem>
+                      <SelectItem value="ceo">Rahbar</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -221,32 +226,24 @@ const formatDate = (dateString) => {
 
                 <div>
                   <Label class="text-sm font-medium">Total Files</Label>
-                  <p class="text-sm text-muted-foreground mt-1">{{ user.uploaded_files_count }}</p>
+                  <p class="text-sm text-muted-foreground mt-1">
+                    {{ user.uploaded_files_count }}
+                  </p>
                 </div>
               </div>
 
               <!-- Action Buttons -->
               <div class="flex space-x-2">
-                <Button
-                  v-if="!editing"
-                  @click="startEditing"
-                  class="flex-1"
-                >
+                <Button v-if="!editing" @click="startEditing" class="flex-1">
                   <Edit class="mr-2 h-4 w-4" />
                   Edit Profile
                 </Button>
                 <template v-else>
-                  <Button
-                    @click="saveChanges"
-                    class="flex-1"
-                  >
+                  <Button @click="saveChanges" class="flex-1">
                     <Save class="mr-2 h-4 w-4" />
                     Save Changes
                   </Button>
-                  <Button
-                    @click="cancelEditing"
-                    variant="outline"
-                  >
+                  <Button @click="cancelEditing" variant="outline">
                     <X class="h-4 w-4" />
                   </Button>
                 </template>
@@ -266,7 +263,10 @@ const formatDate = (dateString) => {
               <CardDescription>Latest uploaded files by this user</CardDescription>
             </CardHeader>
             <CardContent>
-              <div v-if="user.uploaded_files && user.uploaded_files.length > 0" class="space-y-4">
+              <div
+                v-if="user.uploaded_files && user.uploaded_files.length > 0"
+                class="space-y-4"
+              >
                 <div
                   v-for="file in user.uploaded_files"
                   :key="file.id"
@@ -274,9 +274,11 @@ const formatDate = (dateString) => {
                 >
                   <div class="flex-1">
                     <h3 class="text-sm font-medium">{{ file.name }}</h3>
-                    <p class="text-sm text-muted-foreground">{{ file.original_filename }}</p>
+                    <p class="text-sm text-muted-foreground">
+                      {{ file.original_filename }}
+                    </p>
                     <p class="text-xs text-muted-foreground">
-                      {{ formatDate(file.created_at) }} • 
+                      {{ formatDate(file.created_at) }} •
                       {{ (file.file_size / 1024).toFixed(1) }} KB
                     </p>
                   </div>
@@ -287,11 +289,15 @@ const formatDate = (dateString) => {
                   </div>
                 </div>
               </div>
-              
+
               <div v-else class="text-center py-8">
                 <FileText class="mx-auto h-12 w-12 text-muted-foreground" />
-                <h3 class="mt-2 text-sm font-medium text-muted-foreground">No files uploaded</h3>
-                <p class="mt-1 text-sm text-muted-foreground">This user hasn't uploaded any files yet.</p>
+                <h3 class="mt-2 text-sm font-medium text-muted-foreground">
+                  No files uploaded
+                </h3>
+                <p class="mt-1 text-sm text-muted-foreground">
+                  This user hasn't uploaded any files yet.
+                </p>
               </div>
 
               <div v-if="user.uploaded_files_count > 10" class="mt-4 text-center">

@@ -235,7 +235,7 @@ const formatDate = (date) => {
           </Link>
         </div>
 
-        <!-- Registrator Role Card -->
+        <!-- Bino inshoat xodimi Role Card -->
         <div
           v-if="user.role === 'registrator'"
           class="bg-white dark:bg-gray-800 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border p-6 hover:shadow-lg transition-shadow"
