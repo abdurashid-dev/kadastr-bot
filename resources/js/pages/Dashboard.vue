@@ -1,7 +1,7 @@
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed } from "vue";
 import AppLayout from "@/layouts/AppLayout.vue";
-import { Head, Link, router } from "@inertiajs/vue3";
+import { Head, Link } from "@inertiajs/vue3";
 import ApexStatusChart from "@/components/charts/ApexStatusChart.vue";
 import ApexRegionChart from "@/components/charts/ApexRegionChart.vue";
 import ApexFilesByRegionChart from "@/components/charts/ApexFilesByRegionChart.vue";
@@ -22,53 +22,23 @@ const props = defineProps({
     type: Object,
     required: true,
   },
-  filters: {
+  statusData: {
     type: Object,
-    default: () => ({
-      period: "month",
-      start_date: null,
-      end_date: null,
-    }),
+    required: true,
+  },
+  regionData: {
+    type: Object,
+    required: true,
+  },
+  filesRegionData: {
+    type: Object,
+    required: true,
+  },
+  trendData: {
+    type: Object,
+    required: true,
   },
 });
-
-// Simple filtering
-const selectedPeriod = ref(props.filters.period || "month");
-const startDate = ref(props.filters.start_date || "");
-const endDate = ref(props.filters.end_date || "");
-
-// Watch for period changes and update data
-watch(selectedPeriod, () => {
-  updateDashboard();
-});
-
-const updateDashboard = () => {
-  const params = {
-    period: selectedPeriod.value,
-  };
-
-  if (startDate.value && endDate.value) {
-    params.start_date = startDate.value;
-    params.end_date = endDate.value;
-  }
-
-  router.get("/dashboard", params, {
-    preserveState: true,
-    preserveScroll: true,
-  });
-};
-
-const applyDateRange = () => {
-  if (startDate.value && endDate.value) {
-    updateDashboard();
-  }
-};
-
-const clearDateRange = () => {
-  startDate.value = "";
-  endDate.value = "";
-  updateDashboard();
-};
 
 // Computed properties for statistics
 const totalFiles = computed(() => props.fileStats.total_files || 0);
@@ -387,97 +357,24 @@ const formatDate = (date) => {
         </div>
       </div>
 
-      <!-- Simple Filters -->
-      <div
-        class="bg-white dark:bg-gray-800 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border p-6"
-      >
-        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          Davr filtri
-        </h2>
-
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <!-- Period Filter -->
-          <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Davr
-            </label>
-            <select
-              v-model="selectedPeriod"
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="day">Kun</option>
-              <option value="week">Hafta</option>
-              <option value="month">Oy</option>
-              <option value="year">Yil</option>
-            </select>
-          </div>
-
-          <!-- Start Date -->
-          <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Boshlanish sanasi
-            </label>
-            <input
-              v-model="startDate"
-              type="date"
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <!-- End Date -->
-          <div>
-            <label
-              class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Tugash sanasi
-            </label>
-            <input
-              v-model="endDate"
-              type="date"
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="flex items-end gap-2">
-            <button
-              @click="applyDateRange"
-              class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 transition-colors"
-            >
-              Qo'llash
-            </button>
-            <button
-              @click="clearDateRange"
-              class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 transition-colors"
-            >
-              Tozalash
-            </button>
-          </div>
-        </div>
-      </div>
-
       <!-- Charts Section -->
       <div class="grid grid-cols-1 lg:grid-cols-1 gap-6">
         <!-- Status Chart -->
-        <ApexStatusChart :data="filesByStatus" />
+        <ApexStatusChart :data="statusData" />
       </div>
 
       <!-- Additional Charts -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Region Chart (with registered count) -->
-        <ApexRegionChart :data="filesByRegion" />
+        <ApexRegionChart :data="regionData" />
 
         <!-- Files by Region Chart (files only) -->
-        <ApexFilesByRegionChart :data="filesByRegion" />
+        <ApexFilesByRegionChart :data="filesRegionData" />
       </div>
 
       <!-- Monthly Trend Chart -->
       <div class="grid grid-cols-1 lg:grid-cols-1 gap-6">
-        <ApexMonthlyTrendChart :data="monthlyStats" :period="selectedPeriod" />
+        <ApexMonthlyTrendChart :data="trendData" />
       </div>
 
       <!-- Recent Files -->

@@ -38,8 +38,9 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { useTranslations } from '@/composables/useTranslations';
+import { router } from "@inertiajs/vue3";
 
 const { t } = useTranslations();
 
@@ -61,6 +62,17 @@ const periods = [
   { value: "week", label: "Hafta" },
   { value: "month", label: "Oy" },
 ];
+
+// Watch for period changes and update data
+watch(selectedPeriod, (newPeriod) => {
+  router.get('/dashboard', {
+    trend_period: newPeriod
+  }, {
+    preserveState: true,
+    preserveScroll: true,
+    only: ['trendData']
+  });
+});
 
 const chartData = computed(() => {
   let dataSource;

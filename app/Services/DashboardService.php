@@ -7,45 +7,47 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardService
 {
-    public function getFileStatistics(string $period = 'month', ?string $startDate = null, ?string $endDate = null): array
+    public function getFileStatistics(array $periods = [], ?string $startDate = null, ?string $endDate = null): array
     {
+        $defaultPeriods = [
+            'status_period' => 'month',
+            'region_period' => 'month',
+            'files_region_period' => 'month',
+            'trend_period' => 'month',
+        ];
+
+        $periods = array_merge($defaultPeriods, $periods);
+
         return [
             'total_files' => UploadedFile::count(),
-            'files_by_status' => $this->getFilesByStatus($startDate, $endDate),
-            'files_by_region' => $this->getFilesByRegion($startDate, $endDate),
+            'files_by_status' => $this->getFilesByStatus($periods['status_period'], $startDate, $endDate),
+            'files_by_region' => $this->getFilesByRegion($periods['region_period'], $startDate, $endDate),
+            'files_by_region_files_only' => $this->getFilesByRegionFilesOnly($periods['files_region_period'], $startDate, $endDate),
             'files_by_type' => $this->getFilesByType($startDate, $endDate),
             'recent_files' => $this->getRecentFiles(),
-            'monthly_stats' => $this->getMonthlyStats($period, $startDate, $endDate),
+            'monthly_stats' => $this->getMonthlyStats($periods['trend_period'], $startDate, $endDate),
         ];
     }
 
-    private function getFilesByStatus(?string $startDate = null, ?string $endDate = null): array
+    private function getFilesByStatus(string $period = 'month', ?string $startDate = null, ?string $endDate = null): array
     {
         $query = UploadedFile::selectRaw('status, count(*) as count');
 
-        if ($startDate && $endDate) {
-            $query->whereBetween('created_at', [
-                $startDate.' 00:00:00',
-                $endDate.' 23:59:59',
-            ]);
-        }
+        // Apply period-based filtering
+        $this->applyPeriodFilter($query, $period, $startDate, $endDate);
 
         return $query->groupBy('status')
             ->pluck('count', 'status')
             ->toArray();
     }
 
-    private function getFilesByRegion(?string $startDate = null, ?string $endDate = null): array
+    private function getFilesByRegion(string $period = 'month', ?string $startDate = null, ?string $endDate = null): array
     {
         $query = UploadedFile::join('users', 'uploaded_files.user_id', '=', 'users.id')
             ->selectRaw('users.region, count(*) as count, sum(registered_count) as registered_count');
 
-        if ($startDate && $endDate) {
-            $query->whereBetween('uploaded_files.created_at', [
-                $startDate.' 00:00:00',
-                $endDate.' 23:59:59',
-            ]);
-        }
+        // Apply period-based filtering
+        $this->applyPeriodFilter($query, $period, $startDate, $endDate, 'uploaded_files.created_at');
 
         return $query->groupBy('users.region')
             ->get()
@@ -58,14 +60,27 @@ class DashboardService
             ->toArray();
     }
 
+    private function getFilesByRegionFilesOnly(string $period = 'month', ?string $startDate = null, ?string $endDate = null): array
+    {
+        $query = UploadedFile::join('users', 'uploaded_files.user_id', '=', 'users.id')
+            ->selectRaw('users.region, count(*) as count');
+
+        // Apply period-based filtering
+        $this->applyPeriodFilter($query, $period, $startDate, $endDate, 'uploaded_files.created_at');
+
+        return $query->groupBy('users.region')
+            ->pluck('count', 'region')
+            ->toArray();
+    }
+
     private function getFilesByType(?string $startDate = null, ?string $endDate = null): array
     {
         $query = UploadedFile::selectRaw('file_type, count(*) as count');
 
         if ($startDate && $endDate) {
             $query->whereBetween('created_at', [
-                $startDate.' 00:00:00',
-                $endDate.' 23:59:59',
+                $startDate . ' 00:00:00',
+                $endDate . ' 23:59:59',
             ]);
         }
 
@@ -103,8 +118,8 @@ class DashboardService
 
         if ($startDate && $endDate) {
             $query->whereBetween('created_at', [
-                $startDate.' 00:00:00',
-                $endDate.' 23:59:59',
+                $startDate . ' 00:00:00',
+                $endDate . ' 23:59:59',
             ]);
         } else {
             $query->where('created_at', '>=', now()->subMonths(6));
@@ -128,8 +143,8 @@ class DashboardService
 
         if ($startDate && $endDate) {
             $query->whereBetween('created_at', [
-                $startDate.' 00:00:00',
-                $endDate.' 23:59:59',
+                $startDate . ' 00:00:00',
+                $endDate . ' 23:59:59',
             ]);
         } else {
             $query->where('created_at', '>=', now()->subDays(1));
@@ -153,8 +168,8 @@ class DashboardService
 
         if ($startDate && $endDate) {
             $query->whereBetween('created_at', [
-                $startDate.' 00:00:00',
-                $endDate.' 23:59:59',
+                $startDate . ' 00:00:00',
+                $endDate . ' 23:59:59',
             ]);
         } else {
             $query->where('created_at', '>=', now()->subMonths(12));
@@ -164,5 +179,30 @@ class DashboardService
             ->orderBy('month')
             ->pluck('count', 'month')
             ->toArray();
+    }
+
+    private function applyPeriodFilter($query, string $period, ?string $startDate = null, ?string $endDate = null, string $dateColumn = 'created_at'): void
+    {
+        if ($startDate && $endDate) {
+            $query->whereBetween($dateColumn, [
+                $startDate . ' 00:00:00',
+                $endDate . ' 23:59:59',
+            ]);
+        } else {
+            switch ($period) {
+                case 'day':
+                    $query->where($dateColumn, '>=', now()->subDay());
+                    break;
+                case 'week':
+                    $query->where($dateColumn, '>=', now()->subWeek());
+                    break;
+                case 'month':
+                    $query->where($dateColumn, '>=', now()->subMonth());
+                    break;
+                case 'year':
+                    $query->where($dateColumn, '>=', now()->subYear());
+                    break;
+            }
+        }
     }
 }

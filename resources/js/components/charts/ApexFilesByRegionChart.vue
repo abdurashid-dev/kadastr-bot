@@ -1,8 +1,27 @@
 <template>
   <div class="bg-white dark:bg-gray-800 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border p-6">
-    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-      Files by Region
-    </h3>
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+        Hududlar bo'yicha fayllar
+      </h3>
+
+      <!-- Filter Buttons -->
+      <div class="flex gap-2">
+        <button
+          v-for="period in periods"
+          :key="period.value"
+          @click="selectedPeriod = period.value"
+          :class="[
+            'px-3 py-1 text-sm font-medium rounded-md transition-colors',
+            selectedPeriod === period.value
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600',
+          ]"
+        >
+          {{ period.label }}
+        </button>
+      </div>
+    </div>
     <div class="h-64">
       <apexchart
         type="bar"
@@ -15,7 +34,8 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { router } from "@inertiajs/vue3";
 
 const props = defineProps({
   data: {
@@ -23,6 +43,25 @@ const props = defineProps({
     required: true
   }
 })
+
+const selectedPeriod = ref('month');
+
+const periods = [
+  { value: "day", label: "Kun" },
+  { value: "week", label: "Hafta" },
+  { value: "month", label: "Oy" },
+];
+
+// Watch for period changes and update data
+watch(selectedPeriod, (newPeriod) => {
+  router.get('/dashboard', {
+    files_region_period: newPeriod
+  }, {
+    preserveState: true,
+    preserveScroll: true,
+    only: ['filesRegionData']
+  });
+});
 
 const chartData = computed(() => {
   return Object.entries(props.data)
