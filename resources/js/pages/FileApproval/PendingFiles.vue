@@ -1,16 +1,16 @@
 <template>
   <AppLayout>
-    <Head title="Jarayondagi fayllar" />
+    <Head :title="t('messages.pending_files')" />
 
     <div class="space-y-6 p-4">
       <!-- Header -->
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 class="text-2xl font-semibold text-gray-900 dark:text-white">
-            Jarayondagi fayllar
+            {{ t("messages.pending_files") }}
           </h1>
           <p class="text-sm text-gray-600 dark:text-gray-400">
-            Ko'rib chiqish uchun kutayotgan fayllar
+            {{ t("messages.pending_files_description") }}
           </p>
         </div>
         <div class="flex items-center gap-2">
@@ -19,7 +19,7 @@
             class="text-yellow-600 bg-yellow-50 dark:bg-yellow-900/20"
           >
             <Clock class="w-3 h-3 mr-1" />
-            {{ files.total }} ta fayl
+            {{ t("messages.files_count", { count: files.total }) }}
           </Badge>
         </div>
       </div>
@@ -30,7 +30,7 @@
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Jami fayllar
+                {{ t("messages.total_files") }}
               </p>
               <p class="text-2xl font-bold text-gray-900 dark:text-white">
                 {{ files.total }}
@@ -46,7 +46,7 @@
           <div class="flex items-center justify-between">
             <div>
               <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
-                Bugun yuklangan
+                {{ t("messages.uploaded_today") }}
               </p>
               <p class="text-2xl font-bold text-gray-900 dark:text-white">
                 {{ todayCount }}
@@ -61,7 +61,9 @@
         <div class="bg-white dark:bg-gray-800 rounded-lg border p-4">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Haftalik</p>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                {{ t("messages.weekly") }}
+              </p>
               <p class="text-2xl font-bold text-gray-900 dark:text-white">
                 {{ weeklyCount }}
               </p>
@@ -75,7 +77,9 @@
         <div class="bg-white dark:bg-gray-800 rounded-lg border p-4">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Oylik</p>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                {{ t("messages.monthly") }}
+              </p>
               <p class="text-2xl font-bold text-gray-900 dark:text-white">
                 {{ monthlyCount }}
               </p>
@@ -90,16 +94,16 @@
       <!-- Files Table -->
       <Card>
         <CardHeader>
-          <CardTitle>Fayllar ro'yxati</CardTitle>
+          <CardTitle>{{ t("messages.files_list") }}</CardTitle>
         </CardHeader>
         <CardContent>
           <div v-if="files.data.length === 0" class="text-center py-12">
             <FileText class="mx-auto h-12 w-12 text-gray-400" />
             <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">
-              Jarayondagi fayllar yo'q
+              {{ t("messages.no_pending_files") }}
             </h3>
             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-              Hozircha ko'rib chiqish uchun kutayotgan fayllar mavjud emas.
+              {{ t("messages.no_pending_files_description") }}
             </p>
           </div>
 
@@ -107,11 +111,11 @@
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Fayl</TableHead>
-                  <TableHead>Foydalanuvchi</TableHead>
-                  <TableHead>Holat</TableHead>
-                  <TableHead>Yuklangan</TableHead>
-                  <TableHead class="text-right">Amallar</TableHead>
+                  <TableHead>{{ t("messages.file") }}</TableHead>
+                  <TableHead>{{ t("messages.user") }}</TableHead>
+                  <TableHead>{{ t("messages.status") }}</TableHead>
+                  <TableHead>{{ t("messages.uploaded") }}</TableHead>
+                  <TableHead class="text-right">{{ t("messages.actions") }}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -174,22 +178,22 @@
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem @click="viewFile(file)">
                           <Eye class="mr-2 h-4 w-4" />
-                          Ko'rish
+                          {{ t("messages.view") }}
                         </DropdownMenuItem>
                         <DropdownMenuItem @click="openStatusDialog(file)">
                           <CheckCircle class="mr-2 h-4 w-4" />
-                          Holatni yangilash
+                          {{ t("messages.update_status") }}
                         </DropdownMenuItem>
                         <DropdownMenuItem @click="downloadFile(file)">
                           <Download class="mr-2 h-4 w-4" />
-                          Yuklab olish
+                          {{ t("messages.download") }}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           @click="deleteFile(file)"
                           class="text-red-600 dark:text-red-400"
                         >
                           <Trash2 class="mr-2 h-4 w-4" />
-                          O'chirish
+                          {{ t("messages.delete") }}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -203,7 +207,13 @@
           <div v-if="files.links && files.links.length > 3" class="mt-6">
             <nav class="flex items-center justify-between">
               <div class="text-sm text-gray-700 dark:text-gray-300">
-                {{ files.from }}-{{ files.to }} dan {{ files.total }} ta natija
+                {{
+                  t("messages.pagination_results", {
+                    from: files.from,
+                    to: files.to,
+                    total: files.total,
+                  })
+                }}
               </div>
               <div class="flex space-x-1">
                 <Link
@@ -232,15 +242,17 @@
     <Dialog v-model:open="statusDialogOpen">
       <DialogContent class="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Fayl holatini yangilash</DialogTitle>
+          <DialogTitle>{{ t("messages.update_file_status") }}</DialogTitle>
           <DialogDescription>
-            "{{ selectedFile?.name }}" fayli uchun holatni yangilang va izoh qo'shing
+            {{
+              t("messages.update_file_status_description", { name: selectedFile?.name })
+            }}
           </DialogDescription>
         </DialogHeader>
 
         <div class="space-y-4">
           <div>
-            <Label for="status">Holat</Label>
+            <Label for="status">{{ t("messages.status") }}</Label>
             <select
               id="status"
               v-model="newStatus"
@@ -257,22 +269,27 @@
           </div>
 
           <div>
-            <Label for="notes">Admin izohi</Label>
+            <Label for="notes">{{ t("messages.admin_notes") }}</Label>
             <Textarea
               id="notes"
               v-model="adminNotes"
-              placeholder="Ushbu fayl haqida izoh qo'shing..."
+              :placeholder="t('messages.add_file_notes_placeholder')"
               class="mt-1 min-h-[80px]"
             />
           </div>
 
           <!-- Accepted status specific fields -->
-          <div v-if="newStatus === 'accepted'" class="space-y-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-            <h4 class="text-sm font-medium text-green-800 dark:text-green-200">Tasdiqlash ma'lumotlari</h4>
-            
+          <div
+            v-if="newStatus === 'accepted'"
+            class="space-y-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800"
+          >
+            <h4 class="text-sm font-medium text-green-800 dark:text-green-200">
+              {{ t("messages.approval_information") }}
+            </h4>
+
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <Label for="registered_count">Migratsiya bo'lganlar soni</Label>
+                <Label for="registered_count">{{ t("messages.registered_count") }}</Label>
                 <Input
                   id="registered_count"
                   v-model="registeredCount"
@@ -282,9 +299,11 @@
                   class="mt-1"
                 />
               </div>
-              
+
               <div>
-                <Label for="not_registered_count">Migratsiya bo'lmaganlar soni</Label>
+                <Label for="not_registered_count">{{
+                  t("messages.not_registered_count")
+                }}</Label>
                 <Input
                   id="not_registered_count"
                   v-model="notRegisteredCount"
@@ -295,20 +314,20 @@
                 />
               </div>
             </div>
-            
+
             <div>
-              <Label for="accepted_note">Tasdiqlash izohi</Label>
+              <Label for="accepted_note">{{ t("messages.approval_notes") }}</Label>
               <Textarea
                 id="accepted_note"
                 v-model="acceptedNote"
-                placeholder="Tasdiqlash haqida qo'shimcha ma'lumot..."
+                :placeholder="t('messages.approval_notes_placeholder')"
                 class="mt-1 min-h-[60px]"
               />
             </div>
           </div>
 
           <div>
-            <Label>Javob fayli (ixtiyoriy)</Label>
+            <Label>{{ t("messages.response_file_optional") }}</Label>
             <div class="mt-1 space-y-2">
               <div class="flex items-center gap-2">
                 <input
@@ -326,7 +345,7 @@
                   @click="fileInput?.click()"
                 >
                   <Upload class="mr-2 h-4 w-4" />
-                  Fayl tanlash
+                  {{ t("messages.select_file") }}
                 </Button>
 
                 <Button
@@ -337,7 +356,7 @@
                   @click="clearAllFiles"
                 >
                   <X class="mr-2 h-4 w-4" />
-                  Barchasini o'chirish
+                  {{ t("messages.clear_all") }}
                 </Button>
               </div>
 
@@ -369,8 +388,10 @@
               <p class="text-xs text-muted-foreground">
                 {{
                   feedbackFiles.length > 0
-                    ? `${feedbackFiles.length} fayl tanlandi. Bu fayllar foydalanuvchiga Telegram orqali yuboriladi.`
-                    : "Bu fayllar foydalanuvchiga Telegram orqali yuboriladi (bir nechta fayl tanlash mumkin)"
+                    ? t("messages.files_selected_telegram", {
+                        count: feedbackFiles.length,
+                      })
+                    : t("messages.files_telegram_info")
                 }}
               </p>
             </div>
@@ -383,11 +404,11 @@
             @click="statusDialogOpen = false"
             :disabled="isUpdatingStatus"
           >
-            Bekor qilish
+            {{ t("messages.cancel") }}
           </Button>
           <Button @click="updateStatus" :disabled="isUpdatingStatus">
             <LoaderCircle v-if="isUpdatingStatus" class="w-4 h-4 animate-spin mr-2" />
-            {{ isUpdatingStatus ? "Yangilanmoqda..." : "Holatni yangilash" }}
+            {{ isUpdatingStatus ? t("messages.updating") : t("messages.update_status") }}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -445,6 +466,9 @@ import {
   RefreshCw,
 } from "lucide-vue-next";
 import { ref, computed } from "vue";
+import { useTranslations } from "@/composables/useTranslations";
+
+const { t } = useTranslations();
 
 const props = defineProps({
   files: {
@@ -488,28 +512,28 @@ const getStatusBadge = (status) => {
       return {
         variant: "success",
         icon: CheckCircle,
-        text: "Tasdiqlangan",
+        text: t("messages.status_accepted"),
         color: "text-green-600",
       };
     case "rejected":
       return {
         variant: "destructive",
         icon: XCircle,
-        text: "Rad etilgan",
+        text: t("messages.status_rejected"),
         color: "text-red-600",
       };
     case "waiting":
       return {
         variant: "secondary",
         icon: Clock,
-        text: "Bino inshoatga yuborildi",
+        text: t("messages.status_waiting"),
         color: "text-blue-600",
       };
     default:
       return {
         variant: "secondary",
         icon: Clock,
-        text: "Jarayonda",
+        text: t("messages.status_pending"),
         color: "text-yellow-600",
       };
   }
@@ -530,7 +554,7 @@ const formatDate = (dateString) => {
   const year = dateObj.getFullYear();
   const hours = dateObj.getHours().toString().padStart(2, "0");
   const minutes = dateObj.getMinutes().toString().padStart(2, "0");
-  
+
   return `${day}.${month}.${year} ${hours}:${minutes}`;
 };
 
@@ -544,18 +568,18 @@ const formatTime = (dateString) => {
 // Status options based on user role
 const statusOptions = computed(() => {
   const baseOptions = [
-    { value: "waiting", label: "Bino inshoatga yuborildi" },
-    { value: "rejected", label: "Rad etilgan" },
+    { value: "waiting", label: t("messages.status_waiting") },
+    { value: "rejected", label: t("messages.status_rejected") },
   ];
 
   // Checkers can set status to waiting
   if (props.user?.role === "checker") {
-    baseOptions.push({ value: "waiting", label: "Bino inshoatga yuborish" });
+    baseOptions.push({ value: "waiting", label: t("messages.send_to_construction") });
   }
 
   // Registrators can set status to accepted
   if (props.user?.role === "registrator") {
-    baseOptions.push({ value: "accepted", label: "Tasdiqlash" });
+    baseOptions.push({ value: "accepted", label: t("messages.status_accepted") });
   }
 
   return baseOptions;
@@ -588,12 +612,12 @@ const openStatusDialog = (file) => {
   newStatus.value = file.status;
   adminNotes.value = file.admin_notes || "";
   feedbackFiles.value = [];
-  
+
   // Initialize accepted status fields
   registeredCount.value = file.registered_count || 0;
   notRegisteredCount.value = file.not_registered_count || 0;
   acceptedNote.value = file.accepted_note || "";
-  
+
   statusDialogOpen.value = true;
 };
 
@@ -602,7 +626,7 @@ const downloadFile = (file) => {
 };
 
 const deleteFile = (file) => {
-  if (confirm("Ushbu faylni o'chirishga ishonchingiz komilmi?")) {
+  if (confirm(t("messages.delete_file_confirmation"))) {
     router.delete(`/files/${file.id}`);
   }
 };
