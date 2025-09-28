@@ -2,7 +2,7 @@
   <div class="bg-white dark:bg-gray-800 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border p-6">
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-        Hududlar bo'yicha fayllar
+        {{ t('messages.files_by_region') }}
       </h3>
 
       <!-- Filter Buttons -->
@@ -36,6 +36,9 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { router } from "@inertiajs/vue3";
+import { useTranslations } from "@/composables/useTranslations";
+
+const { t } = useTranslations();
 
 const props = defineProps({
   data: {
@@ -47,9 +50,9 @@ const props = defineProps({
 const selectedPeriod = ref('month');
 
 const periods = [
-  { value: "day", label: "Kun" },
-  { value: "week", label: "Hafta" },
-  { value: "month", label: "Oy" },
+  { value: "day", label: t('messages.day') },
+  { value: "week", label: t('messages.week') },
+  { value: "month", label: t('messages.month') },
 ];
 
 // Watch for period changes and update data

@@ -51,7 +51,7 @@ const props = defineProps<Props>();
 const isOpen = ref(false);
 
 const currentLanguageName = computed(() => {
-  return props.availableLocales[props.currentLocale] || "English";
+  return props.availableLocales[props.currentLocale] || "O'zbekcha (Lotin)";
 });
 
 const toggleDropdown = () => {
@@ -64,14 +64,31 @@ const closeDropdown = () => {
 
 const changeLanguage = (locale: string) => {
   if (locale !== props.currentLocale) {
-    router.post(
-      "/language",
-      { locale },
-      {
-        preserveState: true,
-        preserveScroll: true,
-      }
-    );
+    // Create a form and submit it to ensure proper redirect handling
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/language';
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    if (csrfToken) {
+      const csrfInput = document.createElement('input');
+      csrfInput.type = 'hidden';
+      csrfInput.name = '_token';
+      csrfInput.value = csrfToken;
+      form.appendChild(csrfInput);
+    }
+    
+    // Add locale input
+    const localeInput = document.createElement('input');
+    localeInput.type = 'hidden';
+    localeInput.name = 'locale';
+    localeInput.value = locale;
+    form.appendChild(localeInput);
+    
+    // Submit form
+    document.body.appendChild(form);
+    form.submit();
   }
   closeDropdown();
 };

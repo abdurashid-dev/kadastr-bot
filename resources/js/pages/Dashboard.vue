@@ -6,9 +6,13 @@ import ApexStatusChart from "@/components/charts/ApexStatusChart.vue";
 import ApexRegionChart from "@/components/charts/ApexRegionChart.vue";
 import ApexFilesByRegionChart from "@/components/charts/ApexFilesByRegionChart.vue";
 import ApexMonthlyTrendChart from "@/components/charts/ApexMonthlyTrendChart.vue";
+import { useTranslations } from "@/composables/useTranslations";
+
+const { t } = useTranslations();
+
 const breadcrumbs = [
   {
-    title: "Boshqaruv paneli",
+    title: t("messages.dashboard"),
     href: "/dashboard",
   },
 ];
@@ -58,10 +62,10 @@ const statusCounts = computed(() => ({
 // Get status label
 const getStatusLabel = (status) => {
   const labels = {
-    pending: "Jarayonda",
-    waiting: "Kutilmoqda",
-    accepted: "Tasdiqlangan",
-    rejected: "Rad etilgan",
+    pending: t("messages.status_pending"),
+    waiting: t("messages.status_waiting"),
+    accepted: t("messages.status_accepted"),
+    rejected: t("messages.status_rejected"),
   };
   return labels[status] || status;
 };
@@ -90,10 +94,20 @@ const formatDate = (date) => {
 
   return `${day}.${month}.${year} ${hours}:${minutes}`;
 };
+
+const getRoleLabel = (role) => {
+  const labels = {
+    user: t("messages.role_user"),
+    checker: t("messages.role_checker"),
+    registrator: t("messages.role_registrator"),
+    ceo: t("messages.role_ceo"),
+  };
+  return labels[role] || role;
+};
 </script>
 
 <template>
-  <Head title="Boshqaruv paneli" />
+  <Head :title="t('messages.dashboard')" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
@@ -102,10 +116,10 @@ const formatDate = (date) => {
         class="bg-white dark:bg-gray-800 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border p-6"
       >
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-          Xush kelibsiz, {{ user.name }}!
+          {{ t("messages.dashboard_welcome", { name: user.name }) }}
         </h1>
         <p class="text-gray-600 dark:text-gray-400">
-          <span class="font-semibold capitalize">{{ user.role }}</span>
+          <span class="font-semibold capitalize">{{ getRoleLabel(user.role) }}</span>
         </p>
       </div>
 
@@ -315,35 +329,39 @@ const formatDate = (date) => {
         class="bg-white dark:bg-gray-800 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border p-6"
       >
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          Umumiy ko'rinish
+          {{ t("messages.overview") }}
         </h2>
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <div class="text-2xl font-bold text-gray-900 dark:text-white">
               {{ totalFiles }}
             </div>
-            <div class="text-sm text-gray-600 dark:text-gray-400">Jami fayllar</div>
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+              {{ t("messages.total_files") }}
+            </div>
           </div>
           <div class="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
             <div class="text-2xl font-bold text-green-600 dark:text-green-400">
               {{ statusCounts.accepted }}
             </div>
             <div class="text-sm text-green-600 dark:text-green-400">
-              Tasdiqlangan fayllar
+              {{ t("messages.status_accepted") }} {{ t("messages.files") }}
             </div>
           </div>
           <div class="text-center p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
             <div class="text-2xl font-bold text-red-600 dark:text-red-400">
               {{ statusCounts.rejected }}
             </div>
-            <div class="text-sm text-red-600 dark:text-red-400">Rad etilgan fayllar</div>
+            <div class="text-sm text-red-600 dark:text-red-400">
+              {{ t("messages.status_rejected") }} {{ t("messages.files") }}
+            </div>
           </div>
           <div class="text-center p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
             <div class="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
               {{ statusCounts.pending }}
             </div>
             <div class="text-sm text-yellow-600 dark:text-yellow-400">
-              Jarayondagi fayllar
+              {{ t("messages.status_pending") }} {{ t("messages.files") }}
             </div>
           </div>
           <div class="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
@@ -351,7 +369,7 @@ const formatDate = (date) => {
               {{ statusCounts.waiting }}
             </div>
             <div class="text-sm text-blue-600 dark:text-blue-400">
-              Kutilayotgan fayllar
+              {{ t("messages.status_waiting") }} {{ t("messages.files") }}
             </div>
           </div>
         </div>
@@ -382,7 +400,7 @@ const formatDate = (date) => {
         class="bg-white dark:bg-gray-800 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border p-6"
       >
         <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-          So'nggi fayllar
+          {{ t("messages.recent_files") }}
         </h2>
         <div v-if="recentFiles.length > 0" class="space-y-3">
           <div
@@ -446,7 +464,7 @@ const formatDate = (date) => {
           </div>
         </div>
         <div v-else class="text-center py-8 text-gray-500 dark:text-gray-400">
-          So'nggi fayllar yo'q
+          {{ t("messages.no_recent_files") }}
         </div>
       </div>
     </div>

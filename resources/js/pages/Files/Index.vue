@@ -74,9 +74,13 @@ const props = defineProps({
   },
 });
 
+import { useTranslations } from "@/composables/useTranslations";
+
+const { t } = useTranslations();
+
 const breadcrumbs = [
   {
-    title: "Fayllar",
+    title: t("messages.breadcrumb_files"),
     href: "/files",
   },
 ];
@@ -84,26 +88,29 @@ const breadcrumbs = [
 // Status options based on user role
 const statusOptions = computed(() => {
   const baseOptions = [
-    { value: "pending", label: "Jarayonda" },
-    { value: "rejected", label: "Rad etilgan" },
+    { value: "pending", label: t("messages.status_pending") },
+    { value: "rejected", label: t("messages.status_rejected") },
   ];
 
   // Checkers can set status to waiting
   if (props.user.role === "checker") {
-    return [...baseOptions, { value: "waiting", label: "Bino inshoatga yuborish" }];
+    return [
+      ...baseOptions,
+      { value: "waiting", label: t("messages.send_to_construction") },
+    ];
   }
 
   // Registrators can set status to accepted
   if (props.user.role === "registrator") {
-    return [...baseOptions, { value: "accepted", label: "Tasdiqlangan" }];
+    return [...baseOptions, { value: "accepted", label: t("messages.status_accepted") }];
   }
 
   // CEOs can set any status
   if (props.user.role === "ceo") {
     return [
       ...baseOptions,
-      { value: "waiting", label: "Bino inshoatga yuborish" },
-      { value: "accepted", label: "Tasdiqlangan" },
+      { value: "waiting", label: t("messages.send_to_construction") },
+      { value: "accepted", label: t("messages.status_accepted") },
     ];
   }
 
@@ -151,13 +158,21 @@ const getFileIcon = (fileType) => {
 const getStatusBadge = (status) => {
   switch (status) {
     case "accepted":
-      return { variant: "success", icon: CheckCircle, text: "Tasdiqlangan" };
+      return {
+        variant: "success",
+        icon: CheckCircle,
+        text: t("messages.status_accepted"),
+      };
     case "rejected":
-      return { variant: "destructive", icon: XCircle, text: "Rad etilgan" };
+      return {
+        variant: "destructive",
+        icon: XCircle,
+        text: t("messages.status_rejected"),
+      };
     case "waiting":
-      return { variant: "secondary", icon: Clock, text: "Bino inshoatga yuborildi" };
+      return { variant: "secondary", icon: Clock, text: t("messages.status_waiting") };
     default:
-      return { variant: "secondary", icon: Clock, text: "Jarayonda" };
+      return { variant: "secondary", icon: Clock, text: t("messages.status_pending") };
   }
 };
 
@@ -290,23 +305,25 @@ const updateStatus = () => {
 };
 
 const deleteFile = (file) => {
-  if (confirm("Ushbu faylni o'chirishga ishonchingiz komilmi?")) {
+  if (confirm(t("messages.delete_confirmation"))) {
     router.delete(`/files/${file.id}`);
   }
 };
 </script>
 
 <template>
-  <Head title="Fayllar" />
+  <Head :title="t('messages.files')" />
 
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="flex h-full flex-1 flex-col gap-4 p-4">
       <!-- Header with Stats -->
       <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 class="text-2xl font-bold tracking-tight">Fayllar boshqaruvi</h1>
+          <h1 class="text-2xl font-bold tracking-tight">
+            {{ t("messages.file_management") }}
+          </h1>
           <p class="text-muted-foreground">
-            Telegram foydalanuvchilaridan yuklangan fayllarni boshqarish
+            {{ t("messages.file_management_description") }}
           </p>
         </div>
 
@@ -315,7 +332,7 @@ const deleteFile = (file) => {
           <div class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm">
             <File class="h-4 w-4 text-muted-foreground" />
             <span class="font-medium">{{ stats.total }}</span>
-            <span class="text-muted-foreground">Jami</span>
+            <span class="text-muted-foreground">{{ t("messages.total") }}</span>
           </div>
           <div
             class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer hover:bg-accent/50 transition-colors"
@@ -323,7 +340,7 @@ const deleteFile = (file) => {
           >
             <Clock class="h-4 w-4 text-yellow-600" />
             <span class="font-medium text-yellow-600">{{ stats.pending }}</span>
-            <span class="text-muted-foreground">Jarayonda</span>
+            <span class="text-muted-foreground">{{ t("messages.status_pending") }}</span>
           </div>
           <div
             class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer hover:bg-accent/50 transition-colors"
@@ -331,7 +348,7 @@ const deleteFile = (file) => {
           >
             <CheckCircle class="h-4 w-4 text-green-600" />
             <span class="font-medium text-green-600">{{ stats.accepted }}</span>
-            <span class="text-muted-foreground">Tasdiqlangan</span>
+            <span class="text-muted-foreground">{{ t("messages.status_accepted") }}</span>
           </div>
           <div
             class="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm cursor-pointer hover:bg-accent/50 transition-colors"
@@ -339,7 +356,7 @@ const deleteFile = (file) => {
           >
             <XCircle class="h-4 w-4 text-red-600" />
             <span class="font-medium text-red-600">{{ stats.rejected }}</span>
-            <span class="text-muted-foreground">Rad etilgan</span>
+            <span class="text-muted-foreground">{{ t("messages.status_rejected") }}</span>
           </div>
         </div>
       </div>
@@ -356,7 +373,7 @@ const deleteFile = (file) => {
                 />
                 <Input
                   v-model="searchQuery"
-                  placeholder="Fayllar yoki foydalanuvchilarni qidirish..."
+                  :placeholder="t('messages.search_placeholder')"
                   class="pl-9"
                   @keyup.enter="search"
                 />
@@ -373,13 +390,13 @@ const deleteFile = (file) => {
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
               <!-- Status Filter -->
               <div>
-                <Label class="text-sm font-medium">Holat</Label>
+                <Label class="text-sm font-medium">{{ t("messages.status") }}</Label>
                 <select
                   v-model="selectedStatus"
                   @change="search"
                   class="w-full mt-1 px-3 py-2 border rounded-md text-sm"
                 >
-                  <option value="all">Barchasi</option>
+                  <option value="all">{{ t("messages.all") }}</option>
                   <option
                     v-for="option in statusOptions"
                     :key="option.value"
@@ -392,13 +409,13 @@ const deleteFile = (file) => {
 
               <!-- Region Filter -->
               <div>
-                <Label class="text-sm font-medium">Viloyat</Label>
+                <Label class="text-sm font-medium">{{ t("messages.region") }}</Label>
                 <select
                   v-model="selectedRegion"
                   @change="search"
                   class="w-full mt-1 px-3 py-2 border rounded-md text-sm"
                 >
-                  <option value="">Barchasi</option>
+                  <option value="">{{ t("messages.all") }}</option>
                   <option v-for="region in regions" :key="region" :value="region">
                     {{ region }}
                   </option>
@@ -407,7 +424,7 @@ const deleteFile = (file) => {
 
               <!-- Date From Filter -->
               <div>
-                <Label class="text-sm font-medium">Boshlanish sanasi</Label>
+                <Label class="text-sm font-medium">{{ t("messages.date_from") }}</Label>
                 <Input
                   v-model="selectedDateFrom"
                   type="date"
@@ -418,7 +435,7 @@ const deleteFile = (file) => {
 
               <!-- Date To Filter -->
               <div>
-                <Label class="text-sm font-medium">Tugash sanasi</Label>
+                <Label class="text-sm font-medium">{{ t("messages.date_to") }}</Label>
                 <Input
                   v-model="selectedDateTo"
                   type="date"
@@ -439,20 +456,20 @@ const deleteFile = (file) => {
             class="p-8 text-center text-muted-foreground"
           >
             <File class="mx-auto h-12 w-12 mb-4 opacity-50" />
-            <h3 class="text-lg font-medium mb-2">Fayllar topilmadi</h3>
-            <p>Joriy qidiruv mezonlariga mos keladigan fayllar yo'q.</p>
+            <h3 class="text-lg font-medium mb-2">{{ t("messages.no_files_found") }}</h3>
+            <p>{{ t("messages.no_files_description") }}</p>
           </div>
 
           <Table v-else>
             <TableHeader>
               <TableRow>
                 <TableHead class="w-12"></TableHead>
-                <TableHead>Fayl</TableHead>
-                <TableHead>Foydalanuvchi</TableHead>
-                <TableHead>Holat</TableHead>
-                <TableHead>Hajmi</TableHead>
-                <TableHead>Sana</TableHead>
-                <TableHead class="w-20">Amallar</TableHead>
+                <TableHead>{{ t("messages.file") }}</TableHead>
+                <TableHead>{{ t("messages.user") }}</TableHead>
+                <TableHead>{{ t("messages.status") }}</TableHead>
+                <TableHead>{{ t("messages.file_size") }}</TableHead>
+                <TableHead>{{ t("messages.date") }}</TableHead>
+                <TableHead class="w-20">{{ t("messages.actions") }}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -477,7 +494,8 @@ const deleteFile = (file) => {
                       v-if="file.admin_notes"
                       class="text-xs text-muted-foreground bg-muted px-2 py-1 rounded"
                     >
-                      <strong>Izoh:</strong> {{ file.admin_notes }}
+                      <strong>{{ t("messages.admin_notes") }}:</strong>
+                      {{ file.admin_notes }}
                     </div>
 
                     <!-- Accepted status information -->
@@ -486,19 +504,20 @@ const deleteFile = (file) => {
                       class="text-xs bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-2 py-1 rounded mt-2"
                     >
                       <div class="font-medium text-green-800 dark:text-green-200 mb-1">
-                        Tasdiqlash ma'lumotlari:
+                        {{ t("messages.approval_info") }}:
                       </div>
                       <div class="space-y-1 text-green-700 dark:text-green-300">
                         <div v-if="file.registered_count !== null">
-                          <strong>Migratsiya bo'lganlar:</strong>
+                          <strong>{{ t("messages.registered_count") }}:</strong>
                           {{ file.registered_count }}
                         </div>
                         <div v-if="file.not_registered_count !== null">
-                          <strong>Migratsiya bo'lmaganlar:</strong>
+                          <strong>{{ t("messages.not_registered_count") }}:</strong>
                           {{ file.not_registered_count }}
                         </div>
                         <div v-if="file.accepted_note" class="mt-1">
-                          <strong>Izoh:</strong> {{ file.accepted_note }}
+                          <strong>{{ t("messages.notes") }}:</strong>
+                          {{ file.accepted_note }}
                         </div>
                       </div>
                     </div>
@@ -538,7 +557,7 @@ const deleteFile = (file) => {
                       <DropdownMenuItem as-child>
                         <Link :href="`/files/${file.id}`" class="flex items-center">
                           <Eye class="mr-2 h-4 w-4" />
-                          Batafsil ko'rish
+                          {{ t("messages.view_details") }}
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem as-child>
@@ -548,19 +567,19 @@ const deleteFile = (file) => {
                           target="_blank"
                         >
                           <Download class="mr-2 h-4 w-4" />
-                          Yuklab olish
+                          {{ t("messages.download") }}
                         </a>
                       </DropdownMenuItem>
                       <DropdownMenuItem @click="openStatusDialog(file)">
                         <CheckCircle class="mr-2 h-4 w-4" />
-                        Holatni yangilash
+                        {{ t("messages.update_status") }}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         @click="deleteFile(file)"
                         class="text-destructive focus:text-destructive"
                       >
                         <Trash2 class="mr-2 h-4 w-4" />
-                        O'chirish
+                        {{ t("messages.delete") }}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -595,15 +614,15 @@ const deleteFile = (file) => {
     <Dialog v-model:open="statusDialogOpen">
       <DialogContent class="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Fayl holatini yangilash</DialogTitle>
+          <DialogTitle>{{ t("messages.update_file_status") }}</DialogTitle>
           <DialogDescription>
-            "{{ selectedFile?.name }}" fayli uchun holatni yangilang va izoh qo'shing
+            "{{ selectedFile?.name }}" {{ t("messages.update_status_description") }}
           </DialogDescription>
         </DialogHeader>
 
         <div class="space-y-4">
           <div>
-            <Label for="status">Holat</Label>
+            <Label for="status">{{ t("messages.status") }}</Label>
             <select
               id="status"
               v-model="newStatus"
@@ -620,11 +639,11 @@ const deleteFile = (file) => {
           </div>
 
           <div>
-            <Label for="notes">Admin izohi</Label>
+            <Label for="notes">{{ t("messages.admin_notes") }}</Label>
             <Textarea
               id="notes"
               v-model="adminNotes"
-              placeholder="Ushbu fayl haqida izoh qo'shing..."
+              :placeholder="t('messages.admin_notes_placeholder')"
               class="mt-1 min-h-[80px]"
             />
           </div>
@@ -635,12 +654,12 @@ const deleteFile = (file) => {
             class="space-y-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800"
           >
             <h4 class="text-sm font-medium text-green-800 dark:text-green-200">
-              Tasdiqlash ma'lumotlari
+              {{ t("messages.approval_info") }}
             </h4>
 
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <Label for="registered_count">Migratsiya bo'lganlar soni</Label>
+                <Label for="registered_count">{{ t("messages.registered_count") }}</Label>
                 <Input
                   id="registered_count"
                   v-model="registeredCount"
@@ -652,7 +671,9 @@ const deleteFile = (file) => {
               </div>
 
               <div>
-                <Label for="not_registered_count">Migratsiya bo'lmaganlar soni</Label>
+                <Label for="not_registered_count">{{
+                  t("messages.not_registered_count")
+                }}</Label>
                 <Input
                   id="not_registered_count"
                   v-model="notRegisteredCount"
@@ -665,18 +686,18 @@ const deleteFile = (file) => {
             </div>
 
             <div>
-              <Label for="accepted_note">Tasdiqlash izohi</Label>
+              <Label for="accepted_note">{{ t("messages.approval_notes") }}</Label>
               <Textarea
                 id="accepted_note"
                 v-model="acceptedNote"
-                placeholder="Tasdiqlash haqida qo'shimcha ma'lumot..."
+                :placeholder="t('messages.approval_notes_placeholder')"
                 class="mt-1 min-h-[60px]"
               />
             </div>
           </div>
 
           <div>
-            <Label>Javob fayli (ixtiyoriy)</Label>
+            <Label>{{ t("messages.feedback_file_optional") }}</Label>
             <div class="mt-1 space-y-2">
               <div class="flex items-center gap-2">
                 <input
@@ -694,7 +715,7 @@ const deleteFile = (file) => {
                   @click="fileInput?.click()"
                 >
                   <Upload class="mr-2 h-4 w-4" />
-                  Fayl tanlash
+                  {{ t("messages.select_file") }}
                 </Button>
 
                 <Button
@@ -705,7 +726,7 @@ const deleteFile = (file) => {
                   @click="clearAllFiles"
                 >
                   <X class="mr-2 h-4 w-4" />
-                  Barchasini o'chirish
+                  {{ t("messages.clear_all") }}
                 </Button>
               </div>
 
@@ -737,8 +758,8 @@ const deleteFile = (file) => {
               <p class="text-xs text-muted-foreground">
                 {{
                   feedbackFiles.length > 0
-                    ? `${feedbackFiles.length} fayl tanlandi. Bu fayllar foydalanuvchiga Telegram orqali yuboriladi.`
-                    : "Bu fayllar foydalanuvchiga Telegram orqali yuboriladi (bir nechta fayl tanlash mumkin)"
+                    ? t("messages.files_selected", { count: feedbackFiles.length })
+                    : t("messages.feedback_files_description")
                 }}
               </p>
             </div>
@@ -751,11 +772,11 @@ const deleteFile = (file) => {
             @click="statusDialogOpen = false"
             :disabled="isUpdatingStatus"
           >
-            Bekor qilish
+            {{ t("messages.cancel") }}
           </Button>
           <Button @click="updateStatus" :disabled="isUpdatingStatus">
             <LoaderCircle v-if="isUpdatingStatus" class="w-4 h-4 animate-spin mr-2" />
-            {{ isUpdatingStatus ? "Yangilanmoqda..." : "Holatni yangilash" }}
+            {{ isUpdatingStatus ? t("messages.updating") : t("messages.update_status") }}
           </Button>
         </DialogFooter>
       </DialogContent>

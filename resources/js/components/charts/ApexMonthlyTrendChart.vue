@@ -6,10 +6,10 @@
       <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
         {{
           selectedPeriod === "day"
-            ? "Soatlik trend"
+            ? t('messages.hourly_trend')
             : selectedPeriod === "week"
-            ? "Kunlik trend"
-            : "Oylik trend"
+            ? t('messages.daily_trend')
+            : t('messages.monthly_trend')
         }}
       </h3>
 
@@ -58,9 +58,9 @@ const props = defineProps({
 const selectedPeriod = ref(props.period);
 
 const periods = [
-  { value: "day", label: "Kun" },
-  { value: "week", label: "Hafta" },
-  { value: "month", label: "Oy" },
+  { value: "day", label: t('messages.day') },
+  { value: "week", label: t('messages.week') },
+  { value: "month", label: t('messages.month') },
 ];
 
 // Watch for period changes and update data

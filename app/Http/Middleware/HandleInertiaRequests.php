@@ -39,6 +39,18 @@ class HandleInertiaRequests extends Middleware
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
+        $locale = app()->getLocale();
+        $translations = [];
+
+        // Load translations for current locale
+        $translationFiles = ['auth', 'messages'];
+        foreach ($translationFiles as $file) {
+            $filePath = base_path("lang/{$locale}/{$file}.php");
+            if (file_exists($filePath)) {
+                $translations[$file] = include $filePath;
+            }
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -51,8 +63,9 @@ class HandleInertiaRequests extends Middleware
                 'location' => $request->url(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
-            'locale' => app()->getLocale(),
+            'locale' => $locale,
             'available_locales' => config('app.available_locales', []),
+            "translations_{$locale}" => $translations,
         ];
     }
 }

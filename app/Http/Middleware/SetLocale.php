@@ -21,11 +21,11 @@ class SetLocale
         $availableLocales = config('app.available_locales', []);
 
         // Get locale from session, or default to app locale
-        $locale = Session::get('locale', config('app.locale', 'en'));
+        $locale = Session::get('locale', config('app.locale', 'uz-latn'));
 
         // Validate locale is available
         if (! array_key_exists($locale, $availableLocales)) {
-            $locale = config('app.locale', 'en');
+            $locale = config('app.locale', 'uz-latn');
         }
 
         // Set the application locale

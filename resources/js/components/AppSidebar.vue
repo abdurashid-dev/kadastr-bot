@@ -6,33 +6,36 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import { LayoutGrid, FileText, Users, Clock, CheckCircle } from 'lucide-vue-next';
+import { useTranslations } from '@/composables/useTranslations';
 import AppLogo from './AppLogo.vue';
+
+const { t } = useTranslations();
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Bosh sahifa',
+        title: t('messages.home'),
         href: '/dashboard',
         icon: LayoutGrid,
     },
     {
-        title: 'Fayllar',
+        title: t('messages.files'),
         href: '/files',
         icon: FileText,
     },
     {
-        title: "Kutilayotgan fayllarni ko'rish",
+        title: t('messages.pending_files'),
         href: '/approval/pending',
         icon: Clock,
         roles: ['checker', 'registrator', 'ceo'],
     },
     {
-        title: 'Bino inshoatga yuborildi',
+        title: t('messages.waiting_files'),
         href: '/approval/waiting',
         icon: CheckCircle,
         roles: ['registrator', 'ceo'],
     },
     {
-        title: 'Foydalanuvchilarni boshqarish',
+        title: t('messages.user_management'),
         href: '/users',
         icon: Users,
         roles: ['ceo'],

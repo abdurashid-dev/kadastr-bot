@@ -123,12 +123,265 @@ return [
     'selected_locale' => 'Танланган тил',
     'available_languages' => 'Мавжуд тиллар',
 
+    // Dashboard
+    'dashboard_title' => 'Бошқарув панели',
+    'welcome_message' => 'Хуш келибсиз',
+    'total_files_count' => 'Жами файллар',
+    'files_by_status' => 'Файллар ҳолати бўйича',
+    'files_by_region' => 'Ҳудудлар бўйича файллар',
+    'monthly_trend' => 'Ойлик тенденция',
+    'recent_files' => 'Сўнгги файллар',
+    'no_recent_files' => 'Сўнгги файллар йўқ',
+
+    // Chart Filters
+    'day' => 'Кун',
+    'week' => 'Ҳафта',
+    'month' => 'Ой',
+    'year' => 'Йил',
+
+    // File Status Labels
+    'status_pending' => 'Жараёнда',
+    'status_waiting' => 'Бино иншоотга юборилди',
+    'status_accepted' => 'Қабул қилинган',
+    'status_rejected' => 'Рад этилган',
+
+    // Role Labels
+    'role_user' => 'Фойдаланувчи',
+    'role_checker' => 'Текширувчи',
+    'role_registrator' => 'Бино иншоот ходими',
+    'role_ceo' => 'Раҳбар',
+
+    // File Types
+    'file_type_document' => 'Ҳужжат',
+    'file_type_image' => 'Расм',
+    'file_type_other' => 'Бошқа',
+
+    // Actions
+    'upload_file' => 'Файл юклаш',
+    'view_files' => 'Файлларни кўриш',
+    'help' => 'Ёрдам',
+    'refresh' => 'Янгилаш',
+
+    // Statistics Labels
+    'files_uploaded' => 'Юкланган файллар',
+    'hourly_trend' => 'Соатлик тенденция',
+    'daily_trend' => 'Кунлик тенденция',
+    'monthly_trend' => 'Ойлик тенденция',
+
+    // Waiting Files Description
+    'waiting_files_description' => 'Бино иншоот ходими томонидан якуний кўриб чиқиш учун кутаётган файллар',
+
+    // Navigation
+    'home' => 'Бош саҳифа',
+    'pending_files' => 'Кутилаётган файлларни кўриш',
+    'waiting_files' => 'Бино иншоотга юборилди',
+    'user_management' => 'Фойдаланувчиларни бошқариш',
+
+    // File Management Extended
+    'file_upload' => 'Файл юклаш',
+    'file_name' => 'Файл номи',
+    'original_filename' => 'Асл файл номи',
+    'file_type' => 'Файл тури',
+    'file_size' => 'Файл ҳажми',
+    'upload_date' => 'Юкланган сана',
+    'uploaded_by' => 'Юклаган',
+    'admin_notes' => 'Администратор изоҳлари',
+    'update_status' => 'Ҳолатни янгилаш',
+    'status_updated' => 'Ҳолат янгиланди',
+    'file_deleted' => 'Файл ўчирилди',
+    'confirm_delete' => 'Ўчиришни тасдиқланг',
+    'delete_confirmation' => 'Ҳақиқатан ҳам бу файлни ўчирмоқчимисиз?',
+    'no_files_found' => 'Файллар топилмади',
+    'total_files' => 'Жами файллар',
+    'recent_files' => 'Сўнгги файллар',
+    'file_statistics' => 'Файл статистикаси',
+
+    // User Management Extended
+    'new_user' => 'Янги фойдаланувчи',
+    'user_details' => 'Фойдаланувчи маълумотлари',
+    'user_created' => 'Фойдаланувчи яратилди',
+    'user_updated' => 'Фойдаланувчи янгиланди',
+    'user_deleted' => 'Фойдаланувчи ўчирилди',
+    'manage_users' => 'Фойдаланувчиларни бошқариш',
+    'user_statistics' => 'Фойдаланувчи статистикаси',
+    'total_users' => 'Жами фойдаланувчилар',
+    'active_users' => 'Фаол фойдаланувчилар',
+
+    // Authentication
+    'login_title' => 'Тизимга кириш',
+    'login_subtitle' => 'Ҳисобингизга кириш учун маълумотларингизни киритинг',
+    'email_address' => 'Электрон почта манзили',
+    'password' => 'Парол',
+    'remember_me' => 'Мени эслаб қол',
+    'forgot_password' => 'Паролни унутдингизми?',
+    'login_button' => 'Кириш',
+    'register_button' => 'Рўйхатдан ўтиш',
+    'logout_button' => 'Чиқиш',
+    'verify_email' => 'Электрон почтани тасдиқлаш',
+    'reset_password' => 'Паролни тиклаш',
+    'confirm_password' => 'Паролни тасдиқлаш',
+
+    // Settings
+    'profile_settings' => 'Профил созламалари',
+    'appearance_settings' => 'Кўриниш созламалари',
+    'password_settings' => 'Парол созламалари',
+    'current_password' => 'Жорий парол',
+    'new_password' => 'Янги парол',
+    'confirm_new_password' => 'Янги паролни тасдиқланг',
+    'update_password' => 'Паролни янгилаш',
+    'password_updated' => 'Парол янгиланди',
+    'profile_updated' => 'Профил янгиланди',
+
+    // Appearance
+    'theme' => 'Мавзу',
+    'light_mode' => 'Ёруғ режим',
+    'dark_mode' => 'Қоронғу режим',
+    'system_mode' => 'Тизим режими',
+
+    // Validation and Errors
+    'validation_error' => 'Текшириш хатоси',
+    'required_field' => 'Бу майдон мажбурий',
+    'invalid_email' => 'Нотўғри электрон почта манзили',
+    'invalid_phone' => 'Нотўғри телефон рақами',
+    'password_min_length' => 'Парол камида :min белгидан иборат бўлиши керак',
+    'password_confirmation' => 'Парол тасдиғи мос келмайди',
+    'file_too_large' => 'Файл жуда катта',
+    'invalid_file_type' => 'Нотўғри файл тури',
+
+    // Regions
+    'select_region' => 'Ҳудудни танланг',
+    'all_regions' => 'Барча ҳудудлар',
+
+    // Pagination
+    'showing_results' => ':from дан :to гача, жами :total',
+    'no_results' => 'Натижалар топилмади',
+    'per_page' => 'Саҳифада',
+
+    // Actions
+    'actions' => 'Амаллар',
+    'approve' => 'Тасдиқлаш',
+    'reject' => 'Рад этиш',
+    'send_to_construction' => 'Бино иншоотга юбориш',
+    'view_details' => 'Батафсил кўриш',
+    'edit_details' => 'Таҳрирлаш',
+    'delete_item' => 'Ўчириш',
+
+    // File Approval
+    'pending_approval' => 'Тасдиқлашни кутмоқда',
+    'approval_workflow' => 'Тасдиқлаш жараёни',
+    'file_approved' => 'Файл тасдиқланди',
+    'file_rejected' => 'Файл рад этилди',
+    'approval_notes' => 'Тасдиқлаш изоҳлари',
+    'rejection_reason' => 'Рад этиш сабаби',
+
+    // Dashboard Extended
+    'dashboard_welcome' => 'Хуш келибсиз, :name!',
+    'overview' => 'Умумий кўриниш',
+    'quick_stats' => 'Тезкор статистика',
+    'recent_activity' => 'Сўнгги фаолият',
+    'system_status' => 'Тизим ҳолати',
+
+    // Time and Dates
+    'today' => 'Бугун',
+    'yesterday' => 'Кеча',
+    'this_week' => 'Бу ҳафта',
+    'this_month' => 'Бу ой',
+    'last_month' => 'Ўтган ой',
+    'this_year' => 'Бу йил',
+    'date_from' => 'Санадан',
+    'date_to' => 'Санагача',
+    'created_at' => 'Яратилган',
+    'updated_at' => 'Янгиланган',
+
+    // Status Messages
+    'operation_successful' => 'Амал муваффақиятли бажарилди',
+    'operation_failed' => 'Амал бажарилмади',
+    'changes_saved' => 'Ўзгаришлар сақланди',
+    'no_changes_made' => 'Ҳеч қандай ўзгариш киритилмади',
+
+    // File Upload
+    'drag_drop_files' => 'Файлларни бу ерга судраб ташланг',
+    'or_click_to_browse' => 'ёки кўриш учун босинг',
+    'supported_formats' => 'Қўллаб-қувватланадиган форматлар',
+    'max_file_size' => 'Максимал файл ҳажми',
+    'upload_progress' => 'Юклаш жараёни',
+    'upload_complete' => 'Юклаш тугалланди',
+    'upload_failed' => 'Юклаш амалга ошмади',
+
+    // Search and Filter
+    'search_placeholder' => 'Қидириш...',
+    'filter_by_status' => 'Ҳолат бўйича филтр',
+    'filter_by_region' => 'Ҳудуд бўйича филтр',
+    'filter_by_date' => 'Сана бўйича филтр',
+    'clear_filters' => 'Филтрларни тозалаш',
+    'apply_filters' => 'Филтрларни қўллаш',
+
+    // Notifications
+    'notification' => 'Билдиришнома',
+    'notifications' => 'Билдиришномалар',
+    'mark_as_read' => 'Ўқилган деб белгилаш',
+    'mark_all_read' => 'Барчасини ўқилган деб белгилаш',
+    'no_notifications' => 'Билдиришномалар йўқ',
+
+    // Help and Support
+    'help' => 'Ёрдам',
+    'support' => 'Қўллаб-қувватлаш',
+    'documentation' => 'Ҳужжатлар',
+    'contact_support' => 'Қўллаб-қувватлаш билан боғланиш',
+    'faq' => 'Тез-тез сўраладиган саволлар',
+
+    // Export and Import
+    'export' => 'Экспорт',
+    'import' => 'Импорт',
+    'export_data' => 'Маълумотларни экспорт қилиш',
+    'import_data' => 'Маълумотларни импорт қилиш',
+    'download_template' => 'Шаблонни юклаб олиш',
+
+    // Breadcrumbs
+    'breadcrumb_home' => 'Бош саҳифа',
+    'breadcrumb_dashboard' => 'Бошқарув панели',
+    'breadcrumb_files' => 'Файллар',
+    'breadcrumb_users' => 'Фойдаланувчилар',
+    'breadcrumb_settings' => 'Созламалар',
+
+    // File Management Extended
+    'file_management' => 'Файллар бошқаруви',
+    'file_management_description' => 'Телеграм фойдаланувчиларидан юкланган файлларни бошқариш',
+    'file' => 'Файл',
+    'user' => 'Фойдаланувчи',
+    'date' => 'Сана',
+    'total' => 'Жами',
+    'all' => 'Барчаси',
+    'no_files_description' => 'Жорий қидирув мезонларига мос келадиган файллар йўқ.',
+    'update_file_status' => 'Файл ҳолатини янгилаш',
+    'update_status_description' => 'файли учун ҳолатни янгиланг ва изоҳ қўшинг',
+    'admin_notes_placeholder' => 'Ушбу файл ҳақида изоҳ қўшинг...',
+    'approval_info' => 'Тасдиқлаш маълумотлари',
+    'registered_count' => 'Мигратсия бўлганлар',
+    'not_registered_count' => 'Мигратсия бўлмаганлар',
+    'notes' => 'Изоҳ',
+    'feedback_file_optional' => 'Жавоб файли (ихтиёрий)',
+    'select_file' => 'Файл танлаш',
+    'clear_all' => 'Барчасини ўчириш',
+    'files_selected' => ':count файл танланди. Бу файллар фойдаланувчига Телеграм орқали юборилади.',
+    'feedback_files_description' => 'Бу файллар фойдаланувчига Телеграм орқали юборилади (бир нечта файл танлаш мумкин)',
+    'updating' => 'Янгиланмоқда...',
+
     // Welcome Page
     'welcome_title' => 'Фарғона Кадастр',
     'welcome_subtitle' => 'Фарғона вилояти кадастр тизими. Ҳужжатларни юклаш ва бошқариш учун тизимга киринг.',
     'login_button' => 'Тизимга кириш',
     'register_button' => 'Рўйхатдан ўтиш',
     'dashboard_button' => 'Бошқарув панели',
+
+    'close' => 'Ёпиш',
+    'open' => 'Очилиш',
+    'view' => 'Кўриш',
+    'download' => 'Юклаб олиш',
+    'upload' => 'Юклаш',
+    'refresh' => 'Янгилаш',
+    'show' => 'Кўрсатиш',
+    'hide' => 'Яшириш',
 
     // Region Names (Фарғона вилояти)
     'regions_list' => [

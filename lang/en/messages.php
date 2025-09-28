@@ -129,4 +129,52 @@ return [
     'login_button' => 'Tizimga kirish',
     'register_button' => 'Ro\'yxatdan o\'tish',
     'dashboard_button' => 'Boshqaruv paneli',
+
+    // Dashboard
+    'dashboard_title' => 'Dashboard',
+    'welcome_message' => 'Welcome',
+    'total_files_count' => 'Total Files',
+    'files_by_status' => 'Files by Status',
+    'files_by_region' => 'Files by Region',
+    'monthly_trend' => 'Monthly Trend',
+    'recent_files' => 'Recent Files',
+    'no_recent_files' => 'No recent files',
+
+    // Chart Filters
+    'day' => 'Day',
+    'week' => 'Week',
+    'month' => 'Month',
+    'year' => 'Year',
+
+    // File Status Labels
+    'status_pending' => 'Pending',
+    'status_waiting' => 'Sent to Construction',
+    'status_accepted' => 'Accepted',
+    'status_rejected' => 'Rejected',
+
+    // Role Labels
+    'role_user' => 'User',
+    'role_checker' => 'Checker',
+    'role_registrator' => 'Construction Officer',
+    'role_ceo' => 'Manager',
+
+    // File Types
+    'file_type_document' => 'Document',
+    'file_type_image' => 'Image',
+    'file_type_other' => 'Other',
+
+    // Actions
+    'upload_file' => 'Upload File',
+    'view_files' => 'View Files',
+    'help' => 'Help',
+    'refresh' => 'Refresh',
+
+    // Statistics Labels
+    'files_uploaded' => 'Files Uploaded',
+    'hourly_trend' => 'Hourly Trend',
+    'daily_trend' => 'Daily Trend',
+    'monthly_trend' => 'Monthly Trend',
+
+    // Waiting Files Description
+    'waiting_files_description' => 'Files waiting for final review by construction officer',
 ];

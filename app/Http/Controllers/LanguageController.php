@@ -14,7 +14,7 @@ class LanguageController extends Controller
     public function changeLanguage(Request $request)
     {
         $request->validate([
-            'locale' => 'required|string|in:en,uz-latn,uz-cyrl',
+            'locale' => 'required|string|in:uz-latn,uz-cyrl',
         ]);
 
         $locale = $request->locale;

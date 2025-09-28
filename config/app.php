@@ -78,12 +78,11 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    'locale' => env('APP_LOCALE', 'uz-latn'),
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 
     'available_locales' => [
-        'en' => 'English',
         'uz-latn' => 'O\'zbekcha (Lotin)',
         'uz-cyrl' => 'Ўзбекча (Кирилл)',
     ],

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { Head, Link, usePage } from "@inertiajs/vue3";
 import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
+import { useTranslations } from "@/composables/useTranslations";
 import { computed } from "vue";
 
 const page = usePage();
+const { t } = useTranslations();
 const locale = computed(() => page.props.locale as string);
 const availableLocales = computed(
   () => page.props.available_locales as Record<string, string>
@@ -22,7 +24,7 @@ const availableLocales = computed(
       <nav class="flex items-center justify-between">
         <div class="flex items-center gap-2">
           <h2 class="text-lg font-semibold text-[#1b1b18] dark:text-[#EDEDEC]">
-            Fergana Kadastr
+            {{ t("messages.welcome_title") }}
           </h2>
         </div>
         <div class="flex items-center gap-4">
@@ -37,14 +39,14 @@ const availableLocales = computed(
             :href="route('dashboard')"
             class="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
           >
-            Boshqaruv paneli
+            {{ t("messages.dashboard_button") }}
           </Link>
           <template v-else>
             <Link
               :href="route('login')"
               class="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"
             >
-              Kirish
+              {{ t("messages.login_button") }}
             </Link>
           </template>
         </div>

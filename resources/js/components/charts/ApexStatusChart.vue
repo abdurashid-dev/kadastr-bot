@@ -4,7 +4,7 @@
   >
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-        Fayllar holati bo'yicha
+        {{ t('messages.files_by_status') }}
       </h3>
 
       <!-- Filter Buttons -->
@@ -38,6 +38,9 @@
 <script setup>
 import { computed, ref, watch } from "vue";
 import { router } from "@inertiajs/vue3";
+import { useTranslations } from "@/composables/useTranslations";
+
+const { t } = useTranslations();
 
 const props = defineProps({
   data: {
@@ -49,9 +52,9 @@ const props = defineProps({
 const selectedPeriod = ref('month');
 
 const periods = [
-  { value: "day", label: "Kun" },
-  { value: "week", label: "Hafta" },
-  { value: "month", label: "Oy" },
+  { value: "day", label: t('messages.day') },
+  { value: "week", label: t('messages.week') },
+  { value: "month", label: t('messages.month') },
 ];
 
 // Watch for period changes and update data
@@ -66,10 +69,10 @@ watch(selectedPeriod, (newPeriod) => {
 });
 
 const statusLabels = {
-  pending: "Jarayonda",
-  waiting: "Bino inshoatga yuborildi",
-  accepted: "Tasdiqlangan",
-  rejected: "Rad etilgan",
+  pending: t('messages.status_pending'),
+  waiting: t('messages.status_waiting'),
+  accepted: t('messages.status_accepted'),
+  rejected: t('messages.status_rejected'),
 };
 
 const statusColors = {
