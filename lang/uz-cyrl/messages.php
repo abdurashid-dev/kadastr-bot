@@ -367,6 +367,19 @@ return [
     'feedback_files_description' => 'Бу файллар фойдаланувчига Телеграм орқали юборилади (бир нечта файл танлаш мумкин)',
     'updating' => 'Янгиланмоқда...',
 
+    // File Show Page
+    'file_details' => 'Файл тафсилотлари',
+    'delete_file' => 'Файлни ўчириш',
+    'file_information' => 'Файл маълумотлари',
+    'name' => 'Номи',
+    'original_filename' => 'Асл файл номи',
+    'file_type' => 'Файл тури',
+    'mime_type' => 'MIME тури',
+    'user_and_time' => 'Фойдаланувчи ва вақт',
+    'uploaded_by' => 'Юклаган',
+    'uploaded_at' => 'Юкланган',
+    'last_updated' => 'Охирги янгиланиш',
+
     // Welcome Page
     'welcome_title' => 'Фарғона Кадастр',
     'welcome_subtitle' => 'Фарғона вилояти кадастр тизими. Ҳужжатларни юклаш ва бошқариш учун тизимга киринг.',

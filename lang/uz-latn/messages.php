@@ -412,6 +412,19 @@ return [
     'feedback_files_description' => 'Bu fayllar foydalanuvchiga Telegram orqali yuboriladi (bir nechta fayl tanlash mumkin)',
     'updating' => 'Yangilanmoqda...',
 
+    // File Show Page
+    'file_details' => 'Fayl tafsilotlari',
+    'delete_file' => 'Faylni o\'chirish',
+    'file_information' => 'Fayl ma\'lumotlari',
+    'name' => 'Nomi',
+    'original_filename' => 'Asl fayl nomi',
+    'file_type' => 'Fayl turi',
+    'mime_type' => 'MIME turi',
+    'user_and_time' => 'Foydalanuvchi va vaqt',
+    'uploaded_by' => 'Yuklagan',
+    'uploaded_at' => 'Yuklangan',
+    'last_updated' => 'Oxirgi yangilanish',
+
     // Region Names (Farg'ona viloyati)
     'regions_list' => [
         'Quvasoy shahar' => 'Quvasoy shahar',

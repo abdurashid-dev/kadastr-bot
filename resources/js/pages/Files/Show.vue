@@ -31,6 +31,9 @@ import {
   LoaderCircle,
 } from "lucide-vue-next";
 import { ref, computed } from "vue";
+import { useTranslations } from "@/composables/useTranslations";
+
+const { t } = useTranslations();
 
 const props = defineProps({
   file: {
@@ -45,7 +48,7 @@ const props = defineProps({
 
 const breadcrumbs = [
   {
-    title: "Fayllar",
+    title: t("messages.files"),
     href: "/files",
   },
   {
@@ -57,26 +60,29 @@ const breadcrumbs = [
 // Status options based on user role
 const statusOptions = computed(() => {
   const baseOptions = [
-    { value: "pending", label: "Jarayonda" },
-    { value: "rejected", label: "Rad etilgan" },
+    { value: "pending", label: t("messages.status_pending") },
+    { value: "rejected", label: t("messages.status_rejected") },
   ];
 
   // Checkers can set status to waiting
   if (props.user.role === "checker") {
-    return [...baseOptions, { value: "waiting", label: "Bino inshoatga yuborish" }];
+    return [
+      ...baseOptions,
+      { value: "waiting", label: t("messages.send_to_construction") },
+    ];
   }
 
   // Registrators can set status to accepted
   if (props.user.role === "registrator") {
-    return [...baseOptions, { value: "accepted", label: "Tasdiqlangan" }];
+    return [...baseOptions, { value: "accepted", label: t("messages.status_accepted") }];
   }
 
   // CEOs can set any status
   if (props.user.role === "ceo") {
     return [
       ...baseOptions,
-      { value: "waiting", label: "Bino inshoatga yuborish" },
-      { value: "accepted", label: "Tasdiqlangan" },
+      { value: "waiting", label: t("messages.send_to_construction") },
+      { value: "accepted", label: t("messages.status_accepted") },
     ];
   }
 
@@ -118,28 +124,28 @@ const getStatusBadge = (status) => {
       return {
         variant: "success",
         icon: CheckCircle,
-        text: "Tasdiqlangan",
+        text: t("messages.status_accepted"),
         color: "text-green-600",
       };
     case "rejected":
       return {
         variant: "destructive",
         icon: XCircle,
-        text: "Rad etilgan",
+        text: t("messages.status_rejected"),
         color: "text-red-600",
       };
     case "waiting":
       return {
         variant: "secondary",
         icon: Clock,
-        text: "Bino inshoatga yuborildi",
+        text: t("messages.status_waiting"),
         color: "text-blue-600",
       };
     default:
       return {
         variant: "secondary",
         icon: Clock,
-        text: "Jarayonda",
+        text: t("messages.status_pending"),
         color: "text-yellow-600",
       };
   }
@@ -172,12 +178,12 @@ const openStatusDialog = () => {
   newStatus.value = props.file.status;
   adminNotes.value = props.file.admin_notes || "";
   feedbackFiles.value = [];
-  
+
   // Initialize accepted status fields
   registeredCount.value = props.file.registered_count || 0;
   notRegisteredCount.value = props.file.not_registered_count || 0;
   acceptedNote.value = props.file.accepted_note || "";
-  
+
   statusDialogOpen.value = true;
 };
 
@@ -239,7 +245,7 @@ const updateStatus = () => {
 };
 
 const deleteFile = () => {
-  if (confirm("Ushbu faylni o'chirishga ishonchingiz komilmi?")) {
+  if (confirm(t("messages.delete_confirmation"))) {
     router.delete(`/files/${props.file.id}`, {
       onSuccess: () => {
         router.visit("/files");
@@ -264,7 +270,7 @@ const deleteFile = () => {
           </Button>
           <div>
             <h1 class="text-2xl font-bold">{{ file.name }}</h1>
-            <p class="text-muted-foreground">Fayl tafsilotlari</p>
+            <p class="text-muted-foreground">{{ t("messages.file_details") }}</p>
           </div>
         </div>
 
@@ -272,14 +278,16 @@ const deleteFile = () => {
           <Button variant="outline" as-child>
             <a :href="`/files/${file.id}/download`" target="_blank">
               <Download class="mr-2 h-4 w-4" />
-              Yuklab olish
+              {{ t("messages.download") }}
             </a>
           </Button>
           <Button @click="openStatusDialog">
             <Edit class="mr-2 h-4 w-4" />
-            Holatni yangilash
+            {{ t("messages.update_status") }}
           </Button>
-          <Button variant="destructive" @click="deleteFile"> Faylni o'chirish </Button>
+          <Button variant="destructive" @click="deleteFile">
+            {{ t("messages.delete_file") }}
+          </Button>
         </div>
       </div>
 
@@ -289,37 +297,45 @@ const deleteFile = () => {
           <CardHeader>
             <CardTitle class="flex items-center space-x-2">
               <component :is="getFileIcon(file.file_type)" class="h-6 w-6" />
-              <span>Fayl ma'lumotlari</span>
+              <span>{{ t("messages.file_information") }}</span>
             </CardTitle>
           </CardHeader>
           <CardContent class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <Label class="text-sm font-medium text-muted-foreground">Nomi</Label>
+                <Label class="text-sm font-medium text-muted-foreground">{{
+                  t("messages.name")
+                }}</Label>
                 <p class="text-sm">{{ file.name }}</p>
               </div>
               <div>
-                <Label class="text-sm font-medium text-muted-foreground"
-                  >Asl fayl nomi</Label
-                >
+                <Label class="text-sm font-medium text-muted-foreground">{{
+                  t("messages.original_filename")
+                }}</Label>
                 <p class="text-sm">{{ file.original_filename }}</p>
               </div>
               <div>
-                <Label class="text-sm font-medium text-muted-foreground">Fayl turi</Label>
+                <Label class="text-sm font-medium text-muted-foreground">{{
+                  t("messages.file_type")
+                }}</Label>
                 <p class="text-sm capitalize">{{ file.file_type }}</p>
               </div>
               <div>
-                <Label class="text-sm font-medium text-muted-foreground">MIME turi</Label>
+                <Label class="text-sm font-medium text-muted-foreground">{{
+                  t("messages.mime_type")
+                }}</Label>
                 <p class="text-sm">{{ file.mime_type }}</p>
               </div>
               <div>
-                <Label class="text-sm font-medium text-muted-foreground"
-                  >Fayl hajmi</Label
-                >
+                <Label class="text-sm font-medium text-muted-foreground">{{
+                  t("messages.file_size")
+                }}</Label>
                 <p class="text-sm">{{ formatFileSize(file.file_size) }}</p>
               </div>
               <div>
-                <Label class="text-sm font-medium text-muted-foreground">Holat</Label>
+                <Label class="text-sm font-medium text-muted-foreground">{{
+                  t("messages.status")
+                }}</Label>
                 <Badge :variant="getStatusBadge(file.status).variant" class="w-fit">
                   <component
                     :is="getStatusBadge(file.status).icon"
@@ -331,7 +347,9 @@ const deleteFile = () => {
             </div>
 
             <div v-if="file.admin_notes">
-              <Label class="text-sm font-medium text-muted-foreground">Admin izohi</Label>
+              <Label class="text-sm font-medium text-muted-foreground">{{
+                t("messages.admin_notes")
+              }}</Label>
               <p class="text-sm mt-1 p-3 bg-muted rounded-md">{{ file.admin_notes }}</p>
             </div>
 
@@ -340,16 +358,20 @@ const deleteFile = () => {
               v-if="file.status === 'accepted'"
               class="text-xs bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 px-3 py-2 rounded mt-2"
             >
-              <div class="font-medium text-green-800 dark:text-green-200 mb-1">Tasdiqlash ma'lumotlari:</div>
+              <div class="font-medium text-green-800 dark:text-green-200 mb-1">
+                {{ t("messages.approval_info") }}:
+              </div>
               <div class="space-y-1 text-green-700 dark:text-green-300">
                 <div v-if="file.registered_count !== null">
-                  <strong>Migratsiya bo'lganlar:</strong> {{ file.registered_count }}
+                  <strong>{{ t("messages.registered_count") }}:</strong>
+                  {{ file.registered_count }}
                 </div>
                 <div v-if="file.not_registered_count !== null">
-                  <strong>Migratsiya bo'lmaganlar:</strong> {{ file.not_registered_count }}
+                  <strong>{{ t("messages.not_registered_count") }}:</strong>
+                  {{ file.not_registered_count }}
                 </div>
                 <div v-if="file.accepted_note" class="mt-1">
-                  <strong>Izoh:</strong> {{ file.accepted_note }}
+                  <strong>{{ t("messages.notes") }}:</strong> {{ file.accepted_note }}
                 </div>
               </div>
             </div>
@@ -359,11 +381,13 @@ const deleteFile = () => {
         <!-- User & Timestamps Card -->
         <Card>
           <CardHeader>
-            <CardTitle>Foydalanuvchi va vaqt</CardTitle>
+            <CardTitle>{{ t("messages.user_and_time") }}</CardTitle>
           </CardHeader>
           <CardContent class="space-y-4">
             <div>
-              <Label class="text-sm font-medium text-muted-foreground">Yuklagan</Label>
+              <Label class="text-sm font-medium text-muted-foreground">{{
+                t("messages.uploaded_by")
+              }}</Label>
               <p class="text-sm font-medium">{{ file.user.name }}</p>
               <p class="text-xs text-muted-foreground">{{ file.user.email }}</p>
               <p v-if="file.user.region" class="text-xs text-muted-foreground">
@@ -372,14 +396,16 @@ const deleteFile = () => {
             </div>
 
             <div>
-              <Label class="text-sm font-medium text-muted-foreground">Yuklangan</Label>
+              <Label class="text-sm font-medium text-muted-foreground">{{
+                t("messages.uploaded_at")
+              }}</Label>
               <p class="text-sm">{{ formatDate(file.created_at) }}</p>
             </div>
 
             <div>
-              <Label class="text-sm font-medium text-muted-foreground"
-                >Oxirgi yangilanish</Label
-              >
+              <Label class="text-sm font-medium text-muted-foreground">{{
+                t("messages.last_updated")
+              }}</Label>
               <p class="text-sm">{{ formatDate(file.updated_at) }}</p>
             </div>
           </CardContent>
@@ -391,15 +417,15 @@ const deleteFile = () => {
     <Dialog v-model:open="statusDialogOpen">
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Fayl holatini yangilash</DialogTitle>
+          <DialogTitle>{{ t("messages.update_file_status") }}</DialogTitle>
           <DialogDescription>
-            "{{ file.name }}" fayli uchun holatni yangilang va izoh qo'shing
+            "{{ file.name }}" {{ t("messages.update_status_description") }}
           </DialogDescription>
         </DialogHeader>
 
         <div class="space-y-4">
           <div>
-            <Label for="status">Holat</Label>
+            <Label for="status">{{ t("messages.status") }}</Label>
             <select
               id="status"
               v-model="newStatus"
@@ -416,22 +442,27 @@ const deleteFile = () => {
           </div>
 
           <div>
-            <Label for="notes">Admin izohi</Label>
+            <Label for="notes">{{ t("messages.admin_notes") }}</Label>
             <Textarea
               id="notes"
               v-model="adminNotes"
-              placeholder="Ushbu fayl haqida izoh qo'shing..."
+              :placeholder="t('messages.admin_notes_placeholder')"
               class="mt-1 min-h-[80px]"
             />
           </div>
 
           <!-- Accepted status specific fields -->
-          <div v-if="newStatus === 'accepted'" class="space-y-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-            <h4 class="text-sm font-medium text-green-800 dark:text-green-200">Tasdiqlash ma'lumotlari</h4>
-            
+          <div
+            v-if="newStatus === 'accepted'"
+            class="space-y-4 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800"
+          >
+            <h4 class="text-sm font-medium text-green-800 dark:text-green-200">
+              {{ t("messages.approval_info") }}
+            </h4>
+
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <Label for="registered_count">Migratsiya bo'lganlar soni</Label>
+                <Label for="registered_count">{{ t("messages.registered_count") }}</Label>
                 <input
                   id="registered_count"
                   v-model="registeredCount"
@@ -441,9 +472,11 @@ const deleteFile = () => {
                   class="w-full mt-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                 />
               </div>
-              
+
               <div>
-                <Label for="not_registered_count">Migratsiya bo'lmaganlar soni</Label>
+                <Label for="not_registered_count">{{
+                  t("messages.not_registered_count")
+                }}</Label>
                 <input
                   id="not_registered_count"
                   v-model="notRegisteredCount"
@@ -454,20 +487,20 @@ const deleteFile = () => {
                 />
               </div>
             </div>
-            
+
             <div>
-              <Label for="accepted_note">Tasdiqlash izohi</Label>
+              <Label for="accepted_note">{{ t("messages.approval_notes") }}</Label>
               <Textarea
                 id="accepted_note"
                 v-model="acceptedNote"
-                placeholder="Tasdiqlash haqida qo'shimcha ma'lumot..."
+                :placeholder="t('messages.approval_notes_placeholder')"
                 class="mt-1 min-h-[60px]"
               />
             </div>
           </div>
 
           <div>
-            <Label>Javob fayli (ixtiyoriy)</Label>
+            <Label>{{ t("messages.feedback_file_optional") }}</Label>
             <div class="mt-1 space-y-2">
               <div class="flex items-center gap-2">
                 <input
@@ -485,7 +518,7 @@ const deleteFile = () => {
                   @click="fileInput?.click()"
                 >
                   <Upload class="mr-2 h-4 w-4" />
-                  Fayl tanlash
+                  {{ t("messages.select_file") }}
                 </Button>
 
                 <Button
@@ -496,7 +529,7 @@ const deleteFile = () => {
                   @click="clearAllFiles"
                 >
                   <X class="mr-2 h-4 w-4" />
-                  Barchasini o'chirish
+                  {{ t("messages.clear_all") }}
                 </Button>
               </div>
 
@@ -528,8 +561,8 @@ const deleteFile = () => {
               <p class="text-xs text-muted-foreground">
                 {{
                   feedbackFiles.length > 0
-                    ? `${feedbackFiles.length} fayl tanlandi. Bu fayllar foydalanuvchiga Telegram orqali yuboriladi.`
-                    : "Bu fayllar foydalanuvchiga Telegram orqali yuboriladi (bir nechta fayl tanlash mumkin)"
+                    ? t("messages.files_selected", { count: feedbackFiles.length })
+                    : t("messages.feedback_files_description")
                 }}
               </p>
             </div>
@@ -542,11 +575,11 @@ const deleteFile = () => {
             @click="statusDialogOpen = false"
             :disabled="isUpdatingStatus"
           >
-            Bekor qilish
+            {{ t("messages.cancel") }}
           </Button>
           <Button @click="updateStatus" :disabled="isUpdatingStatus">
             <LoaderCircle v-if="isUpdatingStatus" class="w-4 h-4 animate-spin mr-2" />
-            {{ isUpdatingStatus ? "Yangilanmoqda..." : "Holatni yangilash" }}
+            {{ isUpdatingStatus ? t("messages.updating") : t("messages.update_status") }}
           </Button>
         </DialogFooter>
       </DialogContent>
