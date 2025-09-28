@@ -2,6 +2,7 @@
 import AppLayout from "@/layouts/AppLayout.vue";
 import { Head, Link, router } from "@inertiajs/vue3";
 import { ref, watch } from "vue";
+import { useTranslations } from "@/composables/useTranslations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -52,6 +53,8 @@ import {
   User,
   Edit,
 } from "lucide-vue-next";
+
+const { t } = useTranslations();
 
 const props = defineProps({
   users: {
@@ -139,21 +142,25 @@ const clearFilters = () => {
 const updateUserRole = (user, newRole) => {
   if (!user || !newRole || user.role === newRole) return;
 
-  if (confirm(`${user.name || "Foydalanuvchi"}ning rolini o'zgartirishni xohlaysizmi?`)) {
+  if (
+    confirm(
+      t("messages.change_role_confirmation", { name: user.name || t("messages.user") })
+    )
+  ) {
     router.put(
       `/users/${user.id}/role`,
       { role: newRole },
       {
         onSuccess: () => {
-          successMessage.value = `${
-            user.name || "Foydalanuvchi"
-          }ning roli muvaffaqiyatli yangilandi`;
+          successMessage.value = t("messages.role_updated_success", {
+            name: user.name || t("messages.user"),
+          });
           setTimeout(() => {
             successMessage.value = "";
           }, 5000);
         },
         onError: (errors) => {
-          errorMessage.value = errors.role || "Rolni yangilashda xatolik yuz berdi";
+          errorMessage.value = errors.role || t("messages.role_update_error");
           setTimeout(() => {
             errorMessage.value = "";
           }, 5000);
@@ -166,19 +173,22 @@ const updateUserRole = (user, newRole) => {
 const deleteUser = (user) => {
   if (!user || !user.id) return;
 
-  if (confirm(`${user.name || "Foydalanuvchi"}ni o'chirishni xohlaysizmi?`)) {
+  if (
+    confirm(
+      t("messages.delete_user_confirmation", { name: user.name || t("messages.user") })
+    )
+  ) {
     router.delete(`/users/${user.id}`, {
       onSuccess: () => {
-        successMessage.value = `${
-          user.name || "Foydalanuvchi"
-        } muvaffaqiyatli o'chirildi`;
+        successMessage.value = t("messages.user_deleted_success", {
+          name: user.name || t("messages.user"),
+        });
         setTimeout(() => {
           successMessage.value = "";
         }, 5000);
       },
       onError: (errors) => {
-        errorMessage.value =
-          errors.user || "Foydalanuvchini o'chirishda xatolik yuz berdi";
+        errorMessage.value = errors.user || t("messages.user_delete_error");
         setTimeout(() => {
           errorMessage.value = "";
         }, 5000);
@@ -189,10 +199,10 @@ const deleteUser = (user) => {
 
 const getRoleLabel = (role) => {
   const labels = {
-    user: "Foydalanuvchi",
-    checker: "Tekshiruvchi",
-    registrator: "Bino inshoat xodimi",
-    ceo: "Rahbar",
+    user: t("messages.role_user"),
+    checker: t("messages.role_checker"),
+    registrator: t("messages.role_registrator"),
+    ceo: t("messages.role_ceo"),
   };
   return labels[role] || role;
 };
@@ -221,7 +231,7 @@ const formatDate = (dateString) => {
 
 <template>
   <AppLayout>
-    <Head title="Foydalanuvchilarni boshqarish" />
+    <Head :title="t('messages.user_management')" />
 
     <div class="space-y-8 p-4">
       <!-- Success/Error Messages -->
@@ -244,23 +254,23 @@ const formatDate = (dateString) => {
           <h1
             class="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
           >
-            Foydalanuvchilarni boshqarish
+            {{ t("messages.user_management") }}
           </h1>
           <p class="text-muted-foreground text-sm mt-1">
-            Foydalanuvchilar va ularning rollarini boshqaring
+            {{ t("messages.user_management_description") }}
           </p>
         </div>
         <div class="flex items-center space-x-2">
           <Button variant="outline" as-child class="shadow-sm h-9">
             <Link href="/users/statistics">
               <BarChart3 class="mr-2 h-4 w-4" />
-              Statistika
+              {{ t("messages.statistics") }}
             </Link>
           </Button>
           <Button as-child class="shadow-sm h-9">
             <Link href="/users/create">
               <User class="mr-2 h-4 w-4" />
-              Yangi foydalanuvchi
+              {{ t("messages.new_user") }}
             </Link>
           </Button>
         </div>
@@ -287,7 +297,7 @@ const formatDate = (dateString) => {
               <p
                 class="text-xs font-medium text-blue-700/70 dark:text-blue-300/70 uppercase tracking-wide"
               >
-                Jami foydalanuvchilar
+                {{ t("messages.total_users") }}
               </p>
               <p class="text-2xl font-bold text-blue-900 dark:text-blue-100">
                 {{ users.total || 0 }}
@@ -315,7 +325,7 @@ const formatDate = (dateString) => {
               <p
                 class="text-xs font-medium text-green-700/70 dark:text-green-300/70 uppercase tracking-wide"
               >
-                Tekshiruvchilar
+                {{ t("messages.role_checker") }}
               </p>
               <p class="text-2xl font-bold text-green-900 dark:text-green-100">
                 {{ (users.data || []).filter((u) => u.role === "checker").length }}
@@ -343,7 +353,7 @@ const formatDate = (dateString) => {
               <p
                 class="text-xs font-medium text-amber-700/70 dark:text-amber-300/70 uppercase tracking-wide"
               >
-                Ro'yxatga oluvchilar
+                {{ t("messages.role_registrator") }}
               </p>
               <p class="text-2xl font-bold text-amber-900 dark:text-amber-100">
                 {{ (users.data || []).filter((u) => u.role === "registrator").length }}
@@ -371,7 +381,7 @@ const formatDate = (dateString) => {
               <p
                 class="text-xs font-medium text-rose-700/70 dark:text-rose-300/70 uppercase tracking-wide"
               >
-                Rahbarlar
+                {{ t("messages.role_ceo") }}
               </p>
               <p class="text-2xl font-bold text-rose-900 dark:text-rose-100">
                 {{ (users.data || []).filter((u) => u.role === "ceo").length }}
@@ -386,11 +396,11 @@ const formatDate = (dateString) => {
         <CardHeader class="pb-4">
           <CardTitle class="flex items-center text-lg">
             <Filter class="mr-2 h-5 w-5" />
-            Filtrlar
+            {{ t("messages.filters") }}
           </CardTitle>
-          <CardDescription class="text-sm"
-            >Foydalanuvchilarni qidiring va filtrlash</CardDescription
-          >
+          <CardDescription class="text-sm">{{
+            t("messages.search_and_filter_users")
+          }}</CardDescription>
         </CardHeader>
         <CardContent class="pt-0">
           <div class="flex flex-col sm:flex-row gap-4">
@@ -401,7 +411,7 @@ const formatDate = (dateString) => {
                 />
                 <Input
                   v-model="searchInput"
-                  placeholder="Ism, email yoki telefon bo'yicha qidiring..."
+                  :placeholder="t('messages.search_users_placeholder')"
                   class="pl-10 h-10"
                 />
               </div>
@@ -409,10 +419,10 @@ const formatDate = (dateString) => {
             <div class="flex gap-2">
               <Select v-model="selectedRole" @update:model-value="handleRoleChange">
                 <SelectTrigger class="w-[180px] h-10">
-                  <SelectValue placeholder="Barcha rollar" />
+                  <SelectValue :placeholder="t('messages.all_roles')" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Barcha rollar</SelectItem>
+                  <SelectItem value="all">{{ t("messages.all_roles") }}</SelectItem>
                   <SelectItem v-for="role in roles" :key="role" :value="role">
                     {{ getRoleLabel(role) }}
                   </SelectItem>
@@ -431,10 +441,10 @@ const formatDate = (dateString) => {
         <CardHeader class="pb-4">
           <CardTitle class="flex items-center text-lg">
             <Users class="mr-2 h-5 w-5" />
-            Foydalanuvchilar
+            {{ t("messages.users") }}
           </CardTitle>
           <CardDescription class="text-sm">
-            {{ users.total || 0 }} ta foydalanuvchi topildi
+            {{ t("messages.users_found", { count: users.total || 0 }) }}
           </CardDescription>
         </CardHeader>
         <CardContent class="pt-0">
@@ -442,11 +452,15 @@ const formatDate = (dateString) => {
             <Table>
               <TableHeader>
                 <TableRow class="bg-muted/50">
-                  <TableHead class="font-semibold">Foydalanuvchi</TableHead>
-                  <TableHead class="font-semibold">Rol</TableHead>
-                  <TableHead class="font-semibold">Fayllar</TableHead>
-                  <TableHead class="font-semibold">Qo'shilgan sana</TableHead>
-                  <TableHead class="w-[100px] font-semibold">Amallar</TableHead>
+                  <TableHead class="font-semibold">{{ t("messages.user") }}</TableHead>
+                  <TableHead class="font-semibold">{{ t("messages.role") }}</TableHead>
+                  <TableHead class="font-semibold">{{ t("messages.files") }}</TableHead>
+                  <TableHead class="font-semibold">{{
+                    t("messages.joined_date")
+                  }}</TableHead>
+                  <TableHead class="w-[100px] font-semibold">{{
+                    t("messages.actions")
+                  }}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -465,10 +479,10 @@ const formatDate = (dateString) => {
                       </Avatar>
                       <div class="min-w-0 flex-1">
                         <div class="font-semibold text-foreground truncate text-sm">
-                          {{ user.name || "Noma'lum foydalanuvchi" }}
+                          {{ user.name || t("messages.unknown_user") }}
                         </div>
                         <div class="text-xs text-muted-foreground truncate">
-                          {{ user.email || "Email yo'q" }}
+                          {{ user.email || t("messages.no_email") }}
                         </div>
                         <div
                           v-if="user.phone_number"
@@ -502,25 +516,25 @@ const formatDate = (dateString) => {
                         <SelectItem value="user">
                           <div class="flex items-center space-x-2">
                             <User class="h-4 w-4" />
-                            <span>Foydalanuvchi</span>
+                            <span>{{ t("messages.role_user") }}</span>
                           </div>
                         </SelectItem>
                         <SelectItem value="checker">
                           <div class="flex items-center space-x-2">
                             <Shield class="h-4 w-4" />
-                            <span>Tekshiruvchi</span>
+                            <span>{{ t("messages.role_checker") }}</span>
                           </div>
                         </SelectItem>
                         <SelectItem value="registrator">
                           <div class="flex items-center space-x-2">
                             <UserCheck class="h-4 w-4" />
-                            <span>Ro'yxatga oluvchi</span>
+                            <span>{{ t("messages.role_registrator") }}</span>
                           </div>
                         </SelectItem>
                         <SelectItem value="ceo">
                           <div class="flex items-center space-x-2">
                             <Crown class="h-4 w-4" />
-                            <span>Rahbar</span>
+                            <span>{{ t("messages.role_ceo") }}</span>
                           </div>
                         </SelectItem>
                       </SelectContent>
@@ -548,7 +562,7 @@ const formatDate = (dateString) => {
                             class="flex items-center w-full"
                           >
                             <Eye class="mr-2 h-4 w-4" />
-                            Profilni ko'rish
+                            {{ t("messages.view_profile") }}
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem as-child>
@@ -557,7 +571,7 @@ const formatDate = (dateString) => {
                             class="flex items-center w-full"
                           >
                             <Edit class="mr-2 h-4 w-4" />
-                            Tahrirlash
+                            {{ t("messages.edit") }}
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem
@@ -565,7 +579,7 @@ const formatDate = (dateString) => {
                           class="text-destructive focus:text-destructive cursor-pointer"
                         >
                           <Trash2 class="mr-2 h-4 w-4" />
-                          Foydalanuvchini o'chirish
+                          {{ t("messages.delete_user") }}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -584,21 +598,26 @@ const formatDate = (dateString) => {
                   :href="users.prev_page_url"
                   class="relative inline-flex items-center px-4 py-2 border border-input bg-background text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
-                  Oldingi
+                  {{ t("messages.previous") }}
                 </Link>
                 <Link
                   v-if="users.next_page_url"
                   :href="users.next_page_url"
                   class="ml-3 relative inline-flex items-center px-4 py-2 border border-input bg-background text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
-                  Keyingi
+                  {{ t("messages.next") }}
                 </Link>
               </div>
               <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
                   <p class="text-sm text-muted-foreground">
-                    {{ users.from || 0 }} dan {{ users.to || 0 }} gacha, jami
-                    {{ users.total || 0 }} ta natija
+                    {{
+                      t("messages.pagination_info", {
+                        from: users.from || 0,
+                        to: users.to || 0,
+                        total: users.total || 0,
+                      })
+                    }}
                   </p>
                 </div>
                 <div>

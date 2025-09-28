@@ -2,6 +2,7 @@
 import AppLayout from "@/layouts/AppLayout.vue";
 import { Head, Link, router, useForm } from "@inertiajs/vue3";
 import { ref, computed } from "vue";
+import { useTranslations } from "@/composables/useTranslations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,8 @@ import {
   Crown,
   Save,
 } from "lucide-vue-next";
+
+const { t } = useTranslations();
 
 const props = defineProps({
   roles: {
@@ -145,10 +148,10 @@ const submit = () => {
 
 const getRoleLabel = (role) => {
   const labels = {
-    user: "Foydalanuvchi",
-    checker: "Tekshiruvchi",
-    registrator: "Bino inshoat xodimi",
-    ceo: "Rahbar",
+    user: t("messages.role_user"),
+    checker: t("messages.role_checker"),
+    registrator: t("messages.role_registrator"),
+    ceo: t("messages.role_ceo"),
   };
   return labels[role] || role;
 };
@@ -166,7 +169,7 @@ const getRoleIcon = (role) => {
 
 <template>
   <AppLayout>
-    <Head title="Yangi foydalanuvchi yaratish" />
+    <Head :title="t('messages.create_user')" />
 
     <div class="space-y-6 px-4">
       <!-- Header -->
@@ -175,17 +178,17 @@ const getRoleIcon = (role) => {
           <Button variant="outline" size="sm" as-child>
             <Link :href="route('users.index')">
               <ArrowLeft class="h-4 w-4 mr-2" />
-              Orqaga
+              {{ t("messages.back") }}
             </Link>
           </Button>
           <div>
             <h1
               class="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
             >
-              Yangi foydalanuvchi yaratish
+              {{ t("messages.create_user") }}
             </h1>
             <p class="text-muted-foreground text-sm mt-1">
-              Tizimga yangi foydalanuvchi qo'shing
+              {{ t("messages.create_user_description") }}
             </p>
           </div>
         </div>
@@ -197,7 +200,7 @@ const getRoleIcon = (role) => {
         class="border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200"
       >
         <CheckCircle class="h-4 w-4" />
-        <AlertDescription> Foydalanuvchi muvaffaqiyatli yaratildi! </AlertDescription>
+        <AlertDescription> {{ t("messages.user_created_success") }} </AlertDescription>
       </Alert>
 
       <Alert v-if="form.hasErrors" variant="destructive">
@@ -216,10 +219,10 @@ const getRoleIcon = (role) => {
         <CardHeader>
           <CardTitle class="flex items-center text-lg">
             <User class="mr-2 h-5 w-5" />
-            Foydalanuvchi ma'lumotlari
+            {{ t("messages.user_information") }}
           </CardTitle>
           <CardDescription>
-            Yangi foydalanuvchi uchun barcha kerakli ma'lumotlarni kiriting
+            {{ t("messages.enter_user_details") }}
           </CardDescription>
         </CardHeader>
         <CardContent class="space-y-6">
@@ -227,7 +230,7 @@ const getRoleIcon = (role) => {
             <!-- Name Field -->
             <div class="space-y-2">
               <Label for="name" class="text-sm font-medium">
-                Ism <span class="text-destructive">*</span>
+                {{ t("messages.name") }} <span class="text-destructive">*</span>
               </Label>
               <div class="relative">
                 <User
@@ -237,7 +240,7 @@ const getRoleIcon = (role) => {
                   id="name"
                   v-model="form.name"
                   type="text"
-                  placeholder="To'liq ismni kiriting"
+                  :placeholder="t('messages.enter_full_name')"
                   class="pl-10"
                   :class="{ 'border-destructive': form.errors.name }"
                 />
@@ -250,7 +253,7 @@ const getRoleIcon = (role) => {
             <!-- Email Field -->
             <div class="space-y-2">
               <Label for="email" class="text-sm font-medium">
-                Email <span class="text-destructive">*</span>
+                {{ t("messages.email") }} <span class="text-destructive">*</span>
               </Label>
               <div class="relative">
                 <Mail
@@ -260,7 +263,7 @@ const getRoleIcon = (role) => {
                   id="email"
                   v-model="form.email"
                   type="email"
-                  placeholder="email@example.com"
+                  :placeholder="t('messages.email_placeholder')"
                   class="pl-10"
                   :class="{ 'border-destructive': form.errors.email }"
                 />
@@ -273,7 +276,7 @@ const getRoleIcon = (role) => {
             <!-- Phone Number Field -->
             <div class="space-y-2">
               <Label for="phone_number" class="text-sm font-medium">
-                Telefon raqami
+                {{ t("messages.phone_number") }}
               </Label>
               <div class="relative">
                 <Phone
@@ -283,7 +286,7 @@ const getRoleIcon = (role) => {
                   id="phone_number"
                   v-model="phoneNumber"
                   type="tel"
-                  placeholder="+998(90)123-45-67"
+                  :placeholder="t('messages.phone_placeholder')"
                   class="pl-10"
                   :class="{ 'border-destructive': form.errors.phone_number }"
                   @input="handlePhoneInput"
@@ -296,17 +299,19 @@ const getRoleIcon = (role) => {
 
             <!-- Region Field -->
             <div class="space-y-2">
-              <Label for="region" class="text-sm font-medium"> Hudud </Label>
+              <Label for="region" class="text-sm font-medium">
+                {{ t("messages.region") }}
+              </Label>
               <div class="relative">
                 <Select v-model="regionValue">
                   <SelectTrigger
                     class="w-full"
                     :class="{ 'border-destructive': form.errors.region }"
                   >
-                    <SelectValue placeholder="Hududni tanlang" />
+                    <SelectValue :placeholder="t('messages.select_region')" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Hududni tanlamang</SelectItem>
+                    <SelectItem value="none">{{ t("messages.no_region") }}</SelectItem>
                     <SelectItem v-for="region in regions" :key="region" :value="region">
                       {{ region }}
                     </SelectItem>
@@ -321,14 +326,14 @@ const getRoleIcon = (role) => {
             <!-- Role Field -->
             <div class="space-y-2">
               <Label for="role" class="text-sm font-medium">
-                Rol <span class="text-destructive">*</span>
+                {{ t("messages.role") }} <span class="text-destructive">*</span>
               </Label>
               <Select v-model="form.role">
                 <SelectTrigger
                   class="w-full"
                   :class="{ 'border-destructive': form.errors.role }"
                 >
-                  <SelectValue placeholder="Rolni tanlang" />
+                  <SelectValue :placeholder="t('messages.select_role')" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem v-for="role in roles" :key="role" :value="role">
@@ -347,13 +352,13 @@ const getRoleIcon = (role) => {
             <!-- Password Field -->
             <div class="space-y-2">
               <Label for="password" class="text-sm font-medium">
-                Parol <span class="text-destructive">*</span>
+                {{ t("messages.password") }} <span class="text-destructive">*</span>
               </Label>
               <Input
                 id="password"
                 v-model="form.password"
                 type="password"
-                placeholder="Parolni kiriting"
+                :placeholder="t('messages.enter_password')"
                 :class="{ 'border-destructive': form.errors.password }"
               />
               <p v-if="form.errors.password" class="text-sm text-destructive">
@@ -364,13 +369,14 @@ const getRoleIcon = (role) => {
             <!-- Password Confirmation Field -->
             <div class="space-y-2">
               <Label for="password_confirmation" class="text-sm font-medium">
-                Parolni tasdiqlang <span class="text-destructive">*</span>
+                {{ t("messages.confirm_password") }}
+                <span class="text-destructive">*</span>
               </Label>
               <Input
                 id="password_confirmation"
                 v-model="form.password_confirmation"
                 type="password"
-                placeholder="Parolni qayta kiriting"
+                :placeholder="t('messages.re_enter_password')"
                 :class="{ 'border-destructive': form.errors.password_confirmation }"
               />
               <p
@@ -384,7 +390,7 @@ const getRoleIcon = (role) => {
             <!-- Submit Buttons -->
             <div class="flex items-center justify-end space-x-3 pt-4">
               <Button type="button" variant="outline" as-child :disabled="isSubmitting">
-                <Link :href="route('users.index')"> Bekor qilish </Link>
+                <Link :href="route('users.index')"> {{ t("messages.cancel") }} </Link>
               </Button>
               <Button
                 type="submit"
@@ -396,7 +402,11 @@ const getRoleIcon = (role) => {
                   v-else
                   class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
                 />
-                {{ isSubmitting || form.processing ? "Yaratilmoqda..." : "Yaratish" }}
+                {{
+                  isSubmitting || form.processing
+                    ? t("messages.creating")
+                    : t("messages.create")
+                }}
               </Button>
             </div>
           </form>

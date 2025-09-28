@@ -2,6 +2,7 @@
 import AppLayout from "@/layouts/AppLayout.vue";
 import { Head, Link, router } from "@inertiajs/vue3";
 import { ref } from "vue";
+import { useTranslations } from "@/composables/useTranslations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +24,8 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, Edit, Save, X, FileText } from "lucide-vue-next";
+
+const { t } = useTranslations();
 
 const props = defineProps({
   user: Object,
@@ -117,7 +120,7 @@ const formatDate = (dateString) => {
 
 <template>
   <AppLayout>
-    <Head :title="`${user.name} - User Details`" />
+    <Head :title="`${user.name} - ${t('messages.user_details')}`" />
 
     <div class="space-y-6">
       <!-- Header -->
@@ -125,7 +128,7 @@ const formatDate = (dateString) => {
         <Button variant="ghost" size="sm" as-child>
           <Link href="/users">
             <ArrowLeft class="mr-2 h-4 w-4" />
-            Back to Users
+            {{ t("messages.back_to_users") }}
           </Link>
         </Button>
       </div>
@@ -155,49 +158,59 @@ const formatDate = (dateString) => {
               <!-- User Details -->
               <div class="space-y-4">
                 <div v-if="!editing">
-                  <Label class="text-sm font-medium">Name</Label>
+                  <Label class="text-sm font-medium">{{ t("messages.name") }}</Label>
                   <p class="text-sm text-muted-foreground mt-1">{{ user.name }}</p>
                 </div>
                 <div v-else>
-                  <Label for="name" class="text-sm font-medium">Name</Label>
+                  <Label for="name" class="text-sm font-medium">{{
+                    t("messages.name")
+                  }}</Label>
                   <Input id="name" v-model="form.name" class="mt-1" />
                 </div>
 
                 <div v-if="!editing">
-                  <Label class="text-sm font-medium">Email</Label>
+                  <Label class="text-sm font-medium">{{ t("messages.email") }}</Label>
                   <p class="text-sm text-muted-foreground mt-1">{{ user.email }}</p>
                 </div>
                 <div v-else>
-                  <Label for="email" class="text-sm font-medium">Email</Label>
+                  <Label for="email" class="text-sm font-medium">{{
+                    t("messages.email")
+                  }}</Label>
                   <Input id="email" v-model="form.email" type="email" class="mt-1" />
                 </div>
 
                 <div v-if="user.phone_number">
                   <div v-if="!editing">
-                    <Label class="text-sm font-medium">Phone</Label>
+                    <Label class="text-sm font-medium">{{
+                      t("messages.phone_number")
+                    }}</Label>
                     <p class="text-sm text-muted-foreground mt-1">
                       {{ user.phone_number }}
                     </p>
                   </div>
                   <div v-else>
-                    <Label for="phone" class="text-sm font-medium">Phone</Label>
+                    <Label for="phone" class="text-sm font-medium">{{
+                      t("messages.phone_number")
+                    }}</Label>
                     <Input id="phone" v-model="form.phone_number" class="mt-1" />
                   </div>
                 </div>
 
                 <div v-if="user.region">
                   <div v-if="!editing">
-                    <Label class="text-sm font-medium">Region</Label>
+                    <Label class="text-sm font-medium">{{ t("messages.region") }}</Label>
                     <p class="text-sm text-muted-foreground mt-1">{{ user.region }}</p>
                   </div>
                   <div v-else>
-                    <Label for="region" class="text-sm font-medium">Region</Label>
+                    <Label for="region" class="text-sm font-medium">{{
+                      t("messages.region")
+                    }}</Label>
                     <Input id="region" v-model="form.region" class="mt-1" />
                   </div>
                 </div>
 
                 <div>
-                  <Label class="text-sm font-medium">Role</Label>
+                  <Label class="text-sm font-medium">{{ t("messages.role") }}</Label>
                   <Select
                     :value="user.role"
                     @update:model-value="updateRole"
@@ -207,10 +220,14 @@ const formatDate = (dateString) => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="user">Foydalanuvchi</SelectItem>
-                      <SelectItem value="checker">Tekshiruvchi</SelectItem>
-                      <SelectItem value="registrator">Bino inshoat xodimi</SelectItem>
-                      <SelectItem value="ceo">Rahbar</SelectItem>
+                      <SelectItem value="user">{{ t("messages.role_user") }}</SelectItem>
+                      <SelectItem value="checker">{{
+                        t("messages.role_checker")
+                      }}</SelectItem>
+                      <SelectItem value="registrator">{{
+                        t("messages.role_registrator")
+                      }}</SelectItem>
+                      <SelectItem value="ceo">{{ t("messages.role_ceo") }}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -218,14 +235,16 @@ const formatDate = (dateString) => {
                 <Separator />
 
                 <div>
-                  <Label class="text-sm font-medium">Joined</Label>
+                  <Label class="text-sm font-medium">{{ t("messages.joined") }}</Label>
                   <p class="text-sm text-muted-foreground mt-1">
                     {{ formatDate(user.created_at) }}
                   </p>
                 </div>
 
                 <div>
-                  <Label class="text-sm font-medium">Total Files</Label>
+                  <Label class="text-sm font-medium">{{
+                    t("messages.total_files")
+                  }}</Label>
                   <p class="text-sm text-muted-foreground mt-1">
                     {{ user.uploaded_files_count }}
                   </p>
@@ -236,12 +255,12 @@ const formatDate = (dateString) => {
               <div class="flex space-x-2">
                 <Button v-if="!editing" @click="startEditing" class="flex-1">
                   <Edit class="mr-2 h-4 w-4" />
-                  Edit Profile
+                  {{ t("messages.edit_profile") }}
                 </Button>
                 <template v-else>
                   <Button @click="saveChanges" class="flex-1">
                     <Save class="mr-2 h-4 w-4" />
-                    Save Changes
+                    {{ t("messages.save_changes") }}
                   </Button>
                   <Button @click="cancelEditing" variant="outline">
                     <X class="h-4 w-4" />
@@ -258,9 +277,9 @@ const formatDate = (dateString) => {
             <CardHeader>
               <CardTitle class="flex items-center">
                 <FileText class="mr-2 h-5 w-5" />
-                Recent Files
+                {{ t("messages.recent_files") }}
               </CardTitle>
-              <CardDescription>Latest uploaded files by this user</CardDescription>
+              <CardDescription>{{ t("messages.latest_files_by_user") }}</CardDescription>
             </CardHeader>
             <CardContent>
               <div
@@ -293,17 +312,19 @@ const formatDate = (dateString) => {
               <div v-else class="text-center py-8">
                 <FileText class="mx-auto h-12 w-12 text-muted-foreground" />
                 <h3 class="mt-2 text-sm font-medium text-muted-foreground">
-                  No files uploaded
+                  {{ t("messages.no_files_uploaded") }}
                 </h3>
                 <p class="mt-1 text-sm text-muted-foreground">
-                  This user hasn't uploaded any files yet.
+                  {{ t("messages.no_files_uploaded_description") }}
                 </p>
               </div>
 
               <div v-if="user.uploaded_files_count > 10" class="mt-4 text-center">
                 <Button variant="outline" as-child>
                   <Link :href="`/approval/history?user=${user.id}`">
-                    View all {{ user.uploaded_files_count }} files
+                    {{
+                      t("messages.view_all_files", { count: user.uploaded_files_count })
+                    }}
                   </Link>
                 </Button>
               </div>
