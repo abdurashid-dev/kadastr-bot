@@ -524,6 +524,12 @@ return [
     'delete_file_confirmation' => 'Ushbu faylni o\'chirishga ishonchingiz komilmi?',
     'pagination_results' => ':from-:to dan :total ta natija',
 
+    // Waiting Files Page
+    'waiting_files' => 'Bino inshoatga yuborilgan fayllar',
+    'waiting_files_description' => 'Bino inshoat xodimi tomonidan yakuniy ko\'rib chiqish uchun kutayotgan fayllar',
+    'no_waiting_files' => 'Bino inshoatga yuborilgan fayllar yo\'q',
+    'no_waiting_files_description' => 'Hozircha registrator tomonidan ko\'rib chiqish uchun kutayotgan fayllar mavjud emas.',
+
     // Region Names (Farg'ona viloyati)
     'regions_list' => [
         'Quvasoy shahar' => 'Quvasoy shahar',

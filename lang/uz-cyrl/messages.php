@@ -479,6 +479,12 @@ return [
     'delete_file_confirmation' => 'Ушбу файлни ўчиришга ишончингиз комилми?',
     'pagination_results' => ':from-:to дан :total та натижа',
 
+    // Waiting Files Page
+    'waiting_files' => 'Бино иншоатга юборилган файллар',
+    'waiting_files_description' => 'Бино иншоат ходими томонидан якуний кўриб чиқиш учун кутайотган файллар',
+    'no_waiting_files' => 'Бино иншоатга юборилган файллар йўқ',
+    'no_waiting_files_description' => 'Ҳозирча регистратор томонидан кўриб чиқиш учун кутайотган файллар мавжуд эмас.',
+
     // Welcome Page
     'welcome_title' => 'Фарғона Кадастр',
     'welcome_subtitle' => 'Фарғона вилояти кадастр тизими. Ҳужжатларни юклаш ва бошқариш учун тизимга киринг.',
