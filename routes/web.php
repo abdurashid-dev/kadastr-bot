@@ -14,6 +14,12 @@ Route::get('/', function () {
 // Language switching route
 Route::post('/language', [LanguageController::class, 'changeLanguage'])->name('language.change');
 
+// Reset locale to default
+Route::get('/reset-locale', function () {
+    session()->forget('locale');
+    return redirect()->back();
+})->name('locale.reset');
+
 Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
@@ -60,5 +66,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';

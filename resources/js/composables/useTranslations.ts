@@ -6,7 +6,7 @@ export function useTranslations() {
     
     const t = (key: string, replace: Record<string, any> = {}): string => {
         // Get the current locale
-        const locale = page.props.locale as string || 'en'
+        const locale = page.props.locale as string || 'uz-latn'
         
         // Split the key to get the file and the key
         const [file, ...keyParts] = key.split('.')
@@ -27,7 +27,7 @@ export function useTranslations() {
         return translation
     }
     
-    const currentLocale = computed(() => page.props.locale as string || 'en')
+    const currentLocale = computed(() => page.props.locale as string || 'uz-latn')
     const availableLocales = computed(() => page.props.available_locales as Record<string, string> || {})
     
     return {

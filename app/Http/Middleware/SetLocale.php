@@ -28,25 +28,14 @@ class SetLocale
             $locale = config('app.locale', 'uz-latn');
         }
 
+        // Force default locale to uz-latn if not set in session
+        if (!Session::has('locale')) {
+            $locale = 'uz-latn';
+            Session::put('locale', $locale);
+        }
+
         // Set the application locale
         App::setLocale($locale);
-
-        // Share locale info with Inertia
-        if ($request->header('X-Inertia')) {
-            // Load translations for the current locale
-            $translations = [];
-            $translationFiles = ['auth', 'messages'];
-
-            foreach ($translationFiles as $file) {
-                $translations[$file] = trans($file, [], $locale);
-            }
-
-            $request->merge([
-                'locale' => $locale,
-                'available_locales' => $availableLocales,
-                "translations_{$locale}" => $translations,
-            ]);
-        }
 
         return $next($request);
     }

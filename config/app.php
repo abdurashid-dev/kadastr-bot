@@ -80,7 +80,7 @@ return [
 
     'locale' => env('APP_LOCALE', 'uz-latn'),
 
-    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
+    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'uz-latn'),
 
     'available_locales' => [
         'uz-latn' => 'O\'zbekcha (Lotin)',
