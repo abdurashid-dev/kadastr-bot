@@ -68,6 +68,7 @@ const changeLanguage = (locale: string) => {
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = '/language';
+    form.style.display = 'none';
     
     // Add CSRF token
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
@@ -77,6 +78,10 @@ const changeLanguage = (locale: string) => {
       csrfInput.name = '_token';
       csrfInput.value = csrfToken;
       form.appendChild(csrfInput);
+    } else {
+      console.error('CSRF token not found');
+      closeDropdown();
+      return;
     }
     
     // Add locale input
@@ -89,8 +94,9 @@ const changeLanguage = (locale: string) => {
     // Submit form
     document.body.appendChild(form);
     form.submit();
+  } else {
+    closeDropdown();
   }
-  closeDropdown();
 };
 
 // Close dropdown when clicking outside

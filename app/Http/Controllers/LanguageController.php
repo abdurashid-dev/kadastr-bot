@@ -13,18 +13,24 @@ class LanguageController extends Controller
      */
     public function changeLanguage(Request $request)
     {
-        $request->validate([
-            'locale' => 'required|string|in:uz-latn,uz-cyrl',
-        ]);
+        try {
+            $request->validate([
+                'locale' => 'required|string|in:uz-latn,uz-cyrl',
+            ]);
 
-        $locale = $request->locale;
+            $locale = $request->locale;
 
-        // Set the application locale
-        App::setLocale($locale);
+            // Set the application locale
+            App::setLocale($locale);
 
-        // Store the locale in session for persistence
-        Session::put('locale', $locale);
+            // Store the locale in session for persistence
+            Session::put('locale', $locale);
 
-        return redirect()->back();
+            return redirect()->back();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->withErrors($e->errors());
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Failed to change language');
+        }
     }
 }
