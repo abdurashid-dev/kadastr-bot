@@ -182,10 +182,10 @@ class FilesController extends Controller
                 default => '📄 <b>Yangilandi</b>'
             };
 
-            $message = "<b>📁 Fayl holati yangilandi!</b>\n\n".
-                "<b>Fayl nomi:</b> {$file->name}\n".
-                "<b>Asl fayl:</b> {$file->original_filename}\n".
-                "<b>Yangi holat:</b> {$statusText}\n".
+            $message = "<b>📁 Fayl holati yangilandi!</b>\n\n" .
+                "<b>Fayl nomi:</b> {$file->name}\n" .
+                "<b>Asl fayl:</b> {$file->original_filename}\n" .
+                "<b>Yangi holat:</b> {$statusText}\n" .
                 "<b>Fayl ID:</b> #{$file->id}";
 
             if ($adminNotes) {
@@ -237,7 +237,7 @@ class FilesController extends Controller
     private function sendFeedbackFile(string $botToken, string $chatId, string $filePath)
     {
         try {
-            $fullPath = storage_path('app/public/'.$filePath);
+            $fullPath = storage_path('app/public/' . $filePath);
 
             if (! file_exists($fullPath)) {
                 Log::error('Feedback file not found', ['path' => $fullPath]);
@@ -315,8 +315,8 @@ class FilesController extends Controller
 
             $botToken = $bot->token;
 
-            // Get file info from Telegram
-            $fileInfoResponse = Http::timeout(30)->get("https://api.telegram.org/bot{$botToken}/getFile", [
+            // Get file info from Telegram with increased timeout
+            $fileInfoResponse = Http::timeout(60)->get("https://api.telegram.org/bot{$botToken}/getFile", [
                 'file_id' => $file->telegram_file_id,
             ]);
 
@@ -324,31 +324,50 @@ class FilesController extends Controller
                 Log::error('Failed to get file info from Telegram', [
                     'file_id' => $file->id,
                     'status' => $fileInfoResponse->status(),
+                    'response' => $fileInfoResponse->body(),
                 ]);
 
-                return redirect()->back()->with('error', 'Could not retrieve file from Telegram.');
+                return redirect()->back()->with('error', 'Could not retrieve file from Telegram. The file may be too large or no longer available.');
             }
 
             $fileInfo = $fileInfoResponse->json();
 
             if (! isset($fileInfo['result']['file_path'])) {
-                Log::error('No file_path in Telegram response', ['file_id' => $file->id]);
+                Log::error('No file_path in Telegram response', [
+                    'file_id' => $file->id,
+                    'response' => $fileInfo,
+                ]);
 
-                return redirect()->back()->with('error', 'File path not available.');
+                return redirect()->back()->with('error', 'File path not available from Telegram.');
             }
 
             $filePath = $fileInfo['result']['file_path'];
+            $fileSize = $fileInfo['result']['file_size'] ?? 0;
 
-            // Download file from Telegram
-            $fileResponse = Http::timeout(60)->get("https://api.telegram.org/file/bot{$botToken}/{$filePath}");
+            // Check if file is too large (Telegram has a 2GB limit, but we'll be more conservative)
+            if ($fileSize > 1.5 * 1024 * 1024 * 1024) { // 1.5GB
+                return redirect()->back()->with('error', 'File is too large to download. Maximum size is 1.5GB.');
+            }
+
+            // Clean the filename for download
+            $filename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->original_filename);
+
+            // Use streaming download for large files
+            if ($fileSize > 50 * 1024 * 1024) { // 50MB
+                return $this->streamDownload($botToken, $filePath, $filename, $file->mime_type, $fileSize);
+            }
+
+            // For smaller files, use the original method but with increased timeout
+            $fileResponse = Http::timeout(300)->get("https://api.telegram.org/file/bot{$botToken}/{$filePath}");
 
             if (! $fileResponse->successful()) {
                 Log::error('Failed to download file from Telegram', [
                     'file_id' => $file->id,
                     'status' => $fileResponse->status(),
+                    'file_size' => $fileSize,
                 ]);
 
-                return redirect()->back()->with('error', 'Could not download file from Telegram.');
+                return redirect()->back()->with('error', 'Could not download file from Telegram. Please try again.');
             }
 
             $fileContent = $fileResponse->body();
@@ -359,13 +378,10 @@ class FilesController extends Controller
                 return redirect()->back()->with('error', 'File content is empty.');
             }
 
-            // Clean the filename for download
-            $filename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $file->original_filename);
-
             // Return file as download
             return response($fileContent)
                 ->header('Content-Type', $file->mime_type ?: 'application/octet-stream')
-                ->header('Content-Disposition', 'attachment; filename="'.$filename.'"')
+                ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
                 ->header('Content-Length', strlen($fileContent))
                 ->header('Cache-Control', 'no-cache, no-store, must-revalidate')
                 ->header('Pragma', 'no-cache')
@@ -374,9 +390,69 @@ class FilesController extends Controller
             Log::error('File download failed', [
                 'file_id' => $file->id,
                 'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return redirect()->back()->with('error', 'Failed to download file. Please try again.');
+        }
+    }
+
+    /**
+     * Stream download for large files to avoid memory issues
+     */
+    private function streamDownload($botToken, $filePath, $filename, $mimeType, $fileSize)
+    {
+        try {
+            $url = "https://api.telegram.org/file/bot{$botToken}/{$filePath}";
+
+            // Create a temporary file to stream the download
+            $tempFile = tmpfile();
+            if (!$tempFile) {
+                throw new \Exception('Could not create temporary file');
+            }
+
+            $tempPath = stream_get_meta_data($tempFile)['uri'];
+
+            // Download file in chunks
+            $chunkSize = 8192; // 8KB chunks
+            $handle = fopen($url, 'rb');
+
+            if (!$handle) {
+                throw new \Exception('Could not open file stream');
+            }
+
+            while (!feof($handle)) {
+                $chunk = fread($handle, $chunkSize);
+                if ($chunk !== false) {
+                    fwrite($tempFile, $chunk);
+                }
+            }
+
+            fclose($handle);
+            rewind($tempFile);
+
+            // Return streaming response
+            return response()->stream(function () use ($tempFile) {
+                while (!feof($tempFile)) {
+                    echo fread($tempFile, 8192);
+                    flush();
+                }
+                fclose($tempFile);
+            }, 200, [
+                'Content-Type' => $mimeType ?: 'application/octet-stream',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Content-Length' => $fileSize,
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Stream download failed', [
+                'error' => $e->getMessage(),
+                'file_path' => $filePath,
+            ]);
+
+            return redirect()->back()->with('error', 'Failed to download large file. Please try again.');
         }
     }
 

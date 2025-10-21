@@ -84,21 +84,21 @@ class Telegram extends WebhookHandler
 
     public function help()
     {
-        $helpText = "🤖 <b>Mavjud buyruqlar:</b>\n\n".
-            "📤 <b>Fayl yuklash</b> - Admin ko'rib chiqishi uchun fayl yuklash\n".
-            "📁 <b>Fayllarim</b> - Yuklangan fayllar holati\n".
-            "💡 <b>Yordam</b> - Ushbu yordam xabarini ko'rsatish\n".
-            "🔄 <b>Yangilash</b> - Botni qayta ishga tushirish\n\n".
-            "<b>📤 Yuklash jarayoni:</b>\n".
-            "1. 📤 Fayl yuklash tugmasini bosing\n".
-            "2. Faylingiz uchun nom/tavsif bering\n".
-            "3. Faylingizni yuklang (hujjat, rasm, video, audio, ovozli xabar)\n".
-            "4. Fayl adminlarga ko'rib chiqish uchun yuboriladi\n\n".
-            "<b>📁 Qo'llab-quvvatlanadigan fayl turlari:</b>\n".
-            "• Hujjatlar (PDF, DOC va boshqalar)\n".
-            "• Rasmlar (JPG, PNG va boshqalar)\n".
-            "• Videolar (MP4, AVI va boshqalar)\n".
-            "• Audio fayllar (MP3, WAV va boshqalar)\n".
+        $helpText = "🤖 <b>Mavjud buyruqlar:</b>\n\n" .
+            "📤 <b>Fayl yuklash</b> - Admin ko'rib chiqishi uchun fayl yuklash\n" .
+            "📁 <b>Fayllarim</b> - Yuklangan fayllar holati\n" .
+            "💡 <b>Yordam</b> - Ushbu yordam xabarini ko'rsatish\n" .
+            "🔄 <b>Yangilash</b> - Botni qayta ishga tushirish\n\n" .
+            "<b>📤 Yuklash jarayoni:</b>\n" .
+            "1. 📤 Fayl yuklash tugmasini bosing\n" .
+            "2. Faylingiz uchun nom/tavsif bering\n" .
+            "3. Faylingizni yuklang (hujjat, rasm, video, audio, ovozli xabar)\n" .
+            "4. Fayl adminlarga ko'rib chiqish uchun yuboriladi\n\n" .
+            "<b>📁 Qo'llab-quvvatlanadigan fayl turlari:</b>\n" .
+            "• Hujjatlar (PDF, DOC va boshqalar)\n" .
+            "• Rasmlar (JPG, PNG va boshqalar)\n" .
+            "• Videolar (MP4, AVI va boshqalar)\n" .
+            "• Audio fayllar (MP3, WAV va boshqalar)\n" .
             '• Ovozli xabarlar';
 
         $keyboard = ReplyKeyboard::make()
@@ -171,7 +171,7 @@ class Telegram extends WebhookHandler
             $message .= "{$statusIcon} <b>{$file->name}</b>\n";
             $message .= "   📄 {$file->original_filename}\n";
             $message .= "   📊 Holat: {$statusText}\n";
-            $message .= '   📅 '.$file->created_at->format('d.m.Y H:i')."\n";
+            $message .= '   📅 ' . $file->created_at->format('d.m.Y H:i') . "\n";
 
             if ($file->admin_notes) {
                 $message .= "   💬 Izoh: {$file->admin_notes}\n";
@@ -220,8 +220,8 @@ class Telegram extends WebhookHandler
         }
 
         // Store user state for upload process using cache
-        Cache::put('telegram_upload_state_'.$user->id(), 'waiting_for_name', 3600);
-        Cache::put('telegram_user_id_'.$user->id(), $existingUser->id, 3600);
+        Cache::put('telegram_upload_state_' . $user->id(), 'waiting_for_name', 3600);
+        Cache::put('telegram_user_id_' . $user->id(), $existingUser->id, 3600);
 
         $keyboard = ReplyKeyboard::make()
             ->row([
@@ -239,10 +239,10 @@ class Telegram extends WebhookHandler
         $user = $this->message->from();
 
         // Check if user is in upload state
-        if (Cache::get('telegram_upload_state_'.$user->id())) {
-            Cache::forget('telegram_upload_state_'.$user->id());
-            Cache::forget('telegram_user_id_'.$user->id());
-            Cache::forget('telegram_file_name_'.$user->id());
+        if (Cache::get('telegram_upload_state_' . $user->id())) {
+            Cache::forget('telegram_upload_state_' . $user->id());
+            Cache::forget('telegram_user_id_' . $user->id());
+            Cache::forget('telegram_file_name_' . $user->id());
 
             $keyboard = ReplyKeyboard::make()
                 ->row([
@@ -275,7 +275,7 @@ class Telegram extends WebhookHandler
     protected function handleMessage(): void
     {
         $user = $this->message->from();
-        $uploadState = Cache::get('telegram_upload_state_'.$user->id());
+        $uploadState = Cache::get('telegram_upload_state_' . $user->id());
         $messageText = $this->message?->text();
 
         // Debug logging
@@ -284,7 +284,7 @@ class Telegram extends WebhookHandler
             'uploadState' => $uploadState,
             'messageText' => $messageText,
             'hasDocument' => $this->message?->document() !== null,
-            'userId' => Cache::get('telegram_user_id_'.$user->id()),
+            'userId' => Cache::get('telegram_user_id_' . $user->id()),
         ]);
 
         // Check if this is a contact message
@@ -328,7 +328,7 @@ class Telegram extends WebhookHandler
         }
 
         // Check if user is in registration process
-        $tempUserData = Cache::get('telegram_temp_user_'.$user->id());
+        $tempUserData = Cache::get('telegram_temp_user_' . $user->id());
         if ($tempUserData && isset($tempUserData['step'])) {
             if ($tempUserData['step'] === 'waiting_for_name') {
                 $this->handleFullNameInput();
@@ -361,13 +361,13 @@ class Telegram extends WebhookHandler
     {
         $user = $this->message->from();
         $fileName = $this->message->text();
-        $userId = Cache::get('telegram_user_id_'.$user->id());
+        $userId = Cache::get('telegram_user_id_' . $user->id());
 
         // Debug logging
         Log::info('HandleUploadName called', [
             'fileName' => $fileName,
             'userId' => $userId,
-            'uploadState' => Cache::get('telegram_upload_state_'.$user->id()),
+            'uploadState' => Cache::get('telegram_upload_state_' . $user->id()),
         ]);
 
         // Check for cancel command
@@ -392,8 +392,8 @@ class Telegram extends WebhookHandler
         }
 
         // Store file name and update state
-        Cache::put('telegram_file_name_'.$user->id(), trim($fileName), 3600);
-        Cache::put('telegram_upload_state_'.$user->id(), 'waiting_for_file', 3600);
+        Cache::put('telegram_file_name_' . $user->id(), trim($fileName), 3600);
+        Cache::put('telegram_upload_state_' . $user->id(), 'waiting_for_file', 3600);
 
         // Debug logging
         Log::info('Upload state updated', [
@@ -416,8 +416,8 @@ class Telegram extends WebhookHandler
     {
         $user = $this->message->from();
         $existingUser = User::where('telegram_id', (string) $user->id())->first();
-        $fileName = Cache::get('telegram_file_name_'.$user->id());
-        $userId = Cache::get('telegram_user_id_'.$user->id());
+        $fileName = Cache::get('telegram_file_name_' . $user->id());
+        $userId = Cache::get('telegram_user_id_' . $user->id());
 
         // Check if message contains text (might be a command)
         if ($this->message->text()) {
@@ -454,7 +454,7 @@ class Telegram extends WebhookHandler
             $debugInfo = "<b>🔍 Fayl yuklash muammosi</b>\n\n";
             $debugInfo .= "Faylingizni oldim, lekin to'g'ri qayta ishlay olmadim.\n";
             $debugInfo .= "<b>Fayl nomi:</b> {$fileName}\n";
-            $debugInfo .= '<b>Xabar turi:</b> '.($this->message->document() ? 'Hujjat' : 'Noma\'lum')."\n\n";
+            $debugInfo .= '<b>Xabar turi:</b> ' . ($this->message->document() ? 'Hujjat' : 'Noma\'lum') . "\n\n";
             $debugInfo .= "<b>Quyidagilarni sinab ko'ring:</b>\n";
             $debugInfo .= "• Boshqa fayl yuklash\n";
             $debugInfo .= "• /cancel ishlatib qaytadan urinish\n";
@@ -469,9 +469,9 @@ class Telegram extends WebhookHandler
         $this->processFileUpload($existingUser, $fileName, $file, $waitMessage->telegraphMessageId());
 
         // Reset upload state
-        Cache::forget('telegram_upload_state_'.$user->id());
-        Cache::forget('telegram_user_id_'.$user->id());
-        Cache::forget('telegram_file_name_'.$user->id());
+        Cache::forget('telegram_upload_state_' . $user->id());
+        Cache::forget('telegram_user_id_' . $user->id());
+        Cache::forget('telegram_file_name_' . $user->id());
     }
 
     protected function getFileFromMessage()
@@ -540,12 +540,12 @@ class Telegram extends WebhookHandler
 
         // Debug: Let's see what we actually have
         $debugInfo = "Debug: Message type not recognized.\n";
-        $debugInfo .= 'Has document: '.($this->message->document() ? 'Yes' : 'No')."\n";
-        $debugInfo .= 'Has photos: '.($this->message->photos() ? 'Yes' : 'No')."\n";
-        $debugInfo .= 'Has video: '.($this->message->video() ? 'Yes' : 'No')."\n";
-        $debugInfo .= 'Has audio: '.($this->message->audio() ? 'Yes' : 'No')."\n";
-        $debugInfo .= 'Has voice: '.($this->message->voice() ? 'Yes' : 'No')."\n";
-        $debugInfo .= 'Has text: '.($this->message->text() ? 'Yes' : 'No')."\n";
+        $debugInfo .= 'Has document: ' . ($this->message->document() ? 'Yes' : 'No') . "\n";
+        $debugInfo .= 'Has photos: ' . ($this->message->photos() ? 'Yes' : 'No') . "\n";
+        $debugInfo .= 'Has video: ' . ($this->message->video() ? 'Yes' : 'No') . "\n";
+        $debugInfo .= 'Has audio: ' . ($this->message->audio() ? 'Yes' : 'No') . "\n";
+        $debugInfo .= 'Has voice: ' . ($this->message->voice() ? 'Yes' : 'No') . "\n";
+        $debugInfo .= 'Has text: ' . ($this->message->text() ? 'Yes' : 'No') . "\n";
 
         // Log this for debugging
         Log::info('Telegram file upload debug', ['debug_info' => $debugInfo]);
@@ -556,8 +556,38 @@ class Telegram extends WebhookHandler
     protected function processFileUpload($user, $fileName, $file, $waitMessageId = null)
     {
         try {
+            // Check file size limits
+            $maxFileSize = 1.5 * 1024 * 1024 * 1024; // 1.5GB
+            if ($file['file_size'] > $maxFileSize) {
+                $errorMessage = "<b>❌ Fayl juda katta!</b>\n\n" .
+                    "Fayl hajmi: " . $this->formatFileSize($file['file_size']) . "\n" .
+                    "Maksimal ruxsat etilgan hajm: " . $this->formatFileSize($maxFileSize) . "\n\n" .
+                    "Iltimos, kichikroq fayl yuboring.";
+
+                if ($waitMessageId) {
+                    $this->chat->edit($waitMessageId)->message($errorMessage)->html()->send();
+                } else {
+                    $this->chat->message($errorMessage)->html()->send();
+                }
+                return;
+            }
+
             // Get Telegram file path (but don't download the file)
             $telegramFilePath = $this->getTelegramFilePath($file['file_id']);
+
+            if (!$telegramFilePath) {
+                $errorMessage = "<b>❌ Xatolik yuz berdi!</b>\n\n" .
+                    "Fayl ma'lumotlarini olishda xatolik yuz berdi. " .
+                    "Fayl juda katta bo'lishi mumkin yoki Telegram serverida muammo bor.\n\n" .
+                    "Iltimos, kichikroq fayl yuboring yoki keyinroq qaytadan urinib ko'ring.";
+
+                if ($waitMessageId) {
+                    $this->chat->edit($waitMessageId)->message($errorMessage)->html()->send();
+                } else {
+                    $this->chat->message($errorMessage)->html()->send();
+                }
+                return;
+            }
 
             // Save file info to database (keeping file on Telegram servers)
             $uploadedFile = UploadedFile::create([
@@ -565,7 +595,7 @@ class Telegram extends WebhookHandler
                 'name' => $fileName,
                 'original_filename' => $file['file_name'],
                 'telegram_file_id' => $file['file_id'],
-                'file_path' => $telegramFilePath ?: 'telegram://'.$file['file_id'], // Telegram path or file ID
+                'file_path' => $telegramFilePath, // Use the actual Telegram file path
                 'file_type' => $file['type'],
                 'mime_type' => $file['mime_type'],
                 'file_size' => $file['file_size'],
@@ -573,13 +603,13 @@ class Telegram extends WebhookHandler
             ]);
 
             // Send success message
-            $fileInfo = "<b>📁 Fayl muvaffaqiyatli yuklandi!</b>\n\n".
-                "<b>Nomi:</b> {$fileName}\n".
-                "<b>Turi:</b> {$file['type']}\n".
-                "<b>Fayl:</b> {$file['file_name']}\n".
-                '<b>Hajmi:</b> '.$this->formatFileSize($file['file_size'])."\n".
-                "<b>Foydalanuvchi:</b> {$user->name}\n".
-                "<b>Yuklash ID:</b> #{$uploadedFile->id}\n\n".
+            $fileInfo = "<b>📁 Fayl muvaffaqiyatli yuklandi!</b>\n\n" .
+                "<b>Nomi:</b> {$fileName}\n" .
+                "<b>Turi:</b> {$file['type']}\n" .
+                "<b>Fayl:</b> {$file['file_name']}\n" .
+                '<b>Hajmi:</b> ' . $this->formatFileSize($file['file_size']) . "\n" .
+                "<b>Foydalanuvchi:</b> {$user->name}\n" .
+                "<b>Yuklash ID:</b> #{$uploadedFile->id}\n\n" .
                 "✅ Faylingiz Telegramda saqlandi va adminlarga ko'rib chiqish uchun yuborildi.";
 
             if ($waitMessageId) {
@@ -620,7 +650,7 @@ class Telegram extends WebhookHandler
     {
         try {
             // Get file info from Telegram API (just for the path, not downloading)
-            $response = Http::get("https://api.telegram.org/bot{$this->bot->token}/getFile", [
+            $response = Http::timeout(60)->get("https://api.telegram.org/bot{$this->bot->token}/getFile", [
                 'file_id' => $fileId,
             ]);
 
@@ -629,6 +659,12 @@ class Telegram extends WebhookHandler
                 if (isset($data['result']['file_path'])) {
                     return $data['result']['file_path']; // Return Telegram's file path
                 }
+            } else {
+                Log::error('Failed to get Telegram file path', [
+                    'file_id' => $fileId,
+                    'status' => $response->status(),
+                    'response' => $response->body(),
+                ]);
             }
 
             return null;
@@ -645,13 +681,13 @@ class Telegram extends WebhookHandler
     protected function formatFileSize($bytes)
     {
         if ($bytes >= 1073741824) {
-            return number_format($bytes / 1073741824, 2).' GB';
+            return number_format($bytes / 1073741824, 2) . ' GB';
         } elseif ($bytes >= 1048576) {
-            return number_format($bytes / 1048576, 2).' MB';
+            return number_format($bytes / 1048576, 2) . ' MB';
         } elseif ($bytes >= 1024) {
-            return number_format($bytes / 1024, 2).' KB';
+            return number_format($bytes / 1024, 2) . ' KB';
         } else {
-            return $bytes.' bytes';
+            return $bytes . ' bytes';
         }
     }
 
@@ -686,7 +722,7 @@ class Telegram extends WebhookHandler
         }
 
         // Store user data temporarily for name input
-        Cache::put('telegram_temp_user_'.$user->id(), [
+        Cache::put('telegram_temp_user_' . $user->id(), [
             'phone_number' => $phoneNumber,
             'telegram_username' => $telegramUsername,
             'telegram_id' => $telegramId,
@@ -708,7 +744,7 @@ class Telegram extends WebhookHandler
     {
         $user = $this->message->from();
         $fullName = trim($this->message->text());
-        $tempUserData = Cache::get('telegram_temp_user_'.$user->id());
+        $tempUserData = Cache::get('telegram_temp_user_' . $user->id());
 
         if (! $tempUserData) {
             $this->chat->message("<b>⚠️ Xatolik!</b>\n\nRo'yxatdan o'tish vaqti tugagan. Iltimos, /start buyrug'i bilan qaytadan boshlang.")
@@ -730,7 +766,7 @@ class Telegram extends WebhookHandler
         // Update temp data with full name and move to region selection
         $tempUserData['full_name'] = $fullName;
         $tempUserData['step'] = 'waiting_for_region';
-        Cache::put('telegram_temp_user_'.$user->id(), $tempUserData, 3600);
+        Cache::put('telegram_temp_user_' . $user->id(), $tempUserData, 3600);
 
         // Show region selection
         $this->showRegionSelection();
@@ -748,7 +784,7 @@ class Telegram extends WebhookHandler
         // Create inline keyboard with regions (2 per row)
         $buttons = [];
         foreach ($regions as $index => $region) {
-            $buttons[] = Button::make($region)->action('region_'.$index)->param('user_id', $userId);
+            $buttons[] = Button::make($region)->action('region_' . $index)->param('user_id', $userId);
 
             // Add row every 2 buttons
             if (count($buttons) == 2 || $index == count($regions) - 1) {
@@ -879,7 +915,7 @@ class Telegram extends WebhookHandler
             return;
         }
 
-        $tempUserData = Cache::get('telegram_temp_user_'.$userId);
+        $tempUserData = Cache::get('telegram_temp_user_' . $userId);
 
         if (! $tempUserData) {
             $this->chat->message("<b>⚠️ Xatolik!</b>\n\nRo'yxatdan o'tish vaqti tugagan. Iltimos, /start buyrug'i bilan qaytadan boshlang.")
@@ -905,7 +941,7 @@ class Telegram extends WebhookHandler
         // Create new user with phone number, full name and region
         $newUser = User::create([
             'name' => $tempUserData['full_name'] ?? $tempUserData['telegram_username'],
-            'email' => $tempUserData['phone_number'].'@telegram.local',
+            'email' => $tempUserData['phone_number'] . '@telegram.local',
             'phone_number' => $tempUserData['phone_number'],
             'region' => $selectedRegion,
             'telegram_id' => $tempUserData['telegram_id'],
@@ -913,7 +949,7 @@ class Telegram extends WebhookHandler
         ]);
 
         // Clean up temporary data
-        Cache::forget('telegram_temp_user_'.$userId);
+        Cache::forget('telegram_temp_user_' . $userId);
 
         // Send success message with action buttons
         $regionText = $selectedRegion ? "\n<b>Hudud:</b> {$selectedRegion}" : '';
