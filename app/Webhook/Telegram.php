@@ -45,6 +45,14 @@ class Telegram extends WebhookHandler
     {
         $chat = $this->message->chat();
         $user = $this->message->from();
+        $messageText = $this->message->text();
+
+        // Check if this is a connection request (start=connect_TOKEN)
+        if (str_starts_with($messageText, '/start connect_')) {
+            $this->handleConnectionRequest($user, $messageText);
+
+            return;
+        }
 
         // Check if user exists by Telegram ID
         $existingUser = User::where('telegram_id', (string) $user->id())->first();
@@ -77,6 +85,69 @@ class Telegram extends WebhookHandler
 
         // Send message with reply keyboard
         $this->chat->message("<b>Xush kelibsiz!</b> 👋\n\nBoshlash uchun ro'yxatdan o'tishingiz kerak. Iltimos, quyidagi tugma orqali telefon raqamingizni ulashing.")
+            ->html()
+            ->replyKeyboard($keyboard)
+            ->send();
+    }
+
+    protected function handleConnectionRequest($telegramUser, $messageText)
+    {
+        // Extract token from the message text
+        $token = str_replace('/start connect_', '', $messageText);
+
+        if (empty($token)) {
+            $this->chat->message("<b>❌ Xatolik!</b>\n\nNoto'g'ri bog'lanish havolasi.")
+                ->html()
+                ->send();
+
+            return;
+        }
+
+        // Find the user by token
+        $webUser = User::findByTelegramToken($token);
+
+        if (! $webUser) {
+            $this->chat->message("<b>❌ Xatolik!</b>\n\nBog'lanish havolasi noto'g'ri yoki muddati tugagan. Iltimos, qaytadan urinib ko'ring.")
+                ->html()
+                ->send();
+
+            return;
+        }
+
+        // Check if this Telegram ID is already used by another user
+        $existingUserWithTelegramId = User::where('telegram_id', (string) $telegramUser->id())
+            ->where('id', '!=', $webUser->id)
+            ->first();
+
+        if ($existingUserWithTelegramId) {
+            // Soft delete the old user and attach this Telegram ID to the new user
+            $existingUserWithTelegramId->delete();
+        }
+
+        // Update the web user with Telegram ID and clear the token
+        $webUser->update([
+            'telegram_id' => (string) $telegramUser->id(),
+        ]);
+
+        // Clear the used token
+        $webUser->clearTelegramToken();
+
+        // Send success message
+        $keyboard = ReplyKeyboard::make()
+            ->row([
+                ReplyButton::make('📤 Yuklash'),
+                ReplyButton::make('📁 Fayllar'),
+                ReplyButton::make('💡 Yordam'),
+            ])
+            ->row([
+                ReplyButton::make('🔄 Yangilash'),
+            ]);
+
+        $this->chat->message("<b>🎉 Muvaffaqiyatli bog'landi!</b>\n\n" .
+            "<b>Salom {$webUser->name}!</b>\n" .
+            "Sizning hisobingiz Telegram bilan muvaffaqiyatli bog'landi.\n\n" .
+            "Endi siz fayllaringizni Telegram orqali yuklashingiz va xabarlar olishingiz mumkin.\n\n" .
+            'Quyidagi tugmalardan birini tanlang:')
             ->html()
             ->replyKeyboard($keyboard)
             ->send();

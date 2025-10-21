@@ -25,6 +25,10 @@ Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+Route::get('telegram/connect', [App\Http\Controllers\DashboardController::class, 'connectTelegram'])
+    ->middleware(['auth', 'verified'])
+    ->name('telegram.connect');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('files', [FilesController::class, 'index'])->name('files.index');
     Route::get('files/{file}', [FilesController::class, 'show'])->name('files.show');

@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
@@ -11,7 +12,7 @@ use Illuminate\Support\Str;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -24,6 +25,8 @@ class User extends Authenticatable
         'phone_number',
         'region',
         'telegram_id',
+        'telegram_connection_token',
+        'telegram_token_expires_at',
         'role',
         'password',
     ];
@@ -48,13 +51,14 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'telegram_token_expires_at' => 'datetime',
         ];
     }
 
     /**
      * Find or create user by phone number
      */
-    public static function findOrCreateByPhone(string $phoneNumber, string $name = null): self
+    public static function findOrCreateByPhone(string $phoneNumber, ?string $name = null): self
     {
         return static::firstOrCreate(
             ['phone_number' => $phoneNumber],
@@ -70,7 +74,7 @@ class User extends Authenticatable
     /**
      * Find or create user by Telegram ID
      */
-    public static function findOrCreateByTelegramId(string $telegramId, string $name = null): self
+    public static function findOrCreateByTelegramId(string $telegramId, ?string $name = null): self
     {
         return static::firstOrCreate(
             ['telegram_id' => $telegramId],
@@ -129,5 +133,50 @@ class User extends Authenticatable
     public function uploadedFiles()
     {
         return $this->hasMany(UploadedFile::class);
+    }
+
+    /**
+     * Generate a secure token for Telegram connection
+     */
+    public function generateTelegramConnectionToken(): string
+    {
+        $token = Str::random(32);
+        $this->update([
+            'telegram_connection_token' => $token,
+            'telegram_token_expires_at' => now()->addMinutes(10), // Token expires in 10 minutes
+        ]);
+
+        return $token;
+    }
+
+    /**
+     * Check if the Telegram connection token is valid
+     */
+    public function isTelegramTokenValid(string $token): bool
+    {
+        return $this->telegram_connection_token === $token
+            && $this->telegram_token_expires_at
+            && $this->telegram_token_expires_at->isFuture();
+    }
+
+    /**
+     * Clear the Telegram connection token
+     */
+    public function clearTelegramToken(): void
+    {
+        $this->update([
+            'telegram_connection_token' => null,
+            'telegram_token_expires_at' => null,
+        ]);
+    }
+
+    /**
+     * Find user by Telegram connection token
+     */
+    public static function findByTelegramToken(string $token): ?self
+    {
+        return static::where('telegram_connection_token', $token)
+            ->where('telegram_token_expires_at', '>', now())
+            ->first();
     }
 }

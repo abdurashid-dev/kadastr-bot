@@ -186,7 +186,10 @@ describe('User Management', function () {
             $response->assertRedirect(route('users.index'));
             $response->assertSessionHas('success', 'User deleted successfully');
 
-            $this->assertDatabaseMissing('users', ['id' => $this->user->id]);
+            // Check that user is soft deleted (not in normal queries but exists in database)
+            $this->assertDatabaseHas('users', ['id' => $this->user->id, 'deleted_at' => now()]);
+            expect(User::find($this->user->id))->toBeNull();
+            expect(User::withTrashed()->find($this->user->id))->not->toBeNull();
         });
 
         it('prevents non-CEOs from deleting users', function () {

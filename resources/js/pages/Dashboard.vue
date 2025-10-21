@@ -1,7 +1,7 @@
 <script setup>
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import AppLayout from "@/layouts/AppLayout.vue";
-import { Head, Link } from "@inertiajs/vue3";
+import { Head, Link, router } from "@inertiajs/vue3";
 import ApexStatusChart from "@/components/charts/ApexStatusChart.vue";
 import ApexRegionChart from "@/components/charts/ApexRegionChart.vue";
 import ApexFilesByRegionChart from "@/components/charts/ApexFilesByRegionChart.vue";
@@ -41,6 +41,14 @@ const props = defineProps({
   trendData: {
     type: Object,
     required: true,
+  },
+  botUsername: {
+    type: String,
+    default: null,
+  },
+  hasTelegramId: {
+    type: Boolean,
+    default: false,
   },
 });
 
@@ -104,6 +112,45 @@ const getRoleLabel = (role) => {
   };
   return labels[role] || role;
 };
+
+// Telegram connection state
+const isConnecting = ref(false);
+const connectionError = ref(null);
+
+// Handle Telegram connection
+const connectToTelegram = async () => {
+  isConnecting.value = true;
+  connectionError.value = null;
+  
+  try {
+    const response = await fetch('/telegram/connect', {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
+      },
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      // Open Telegram in a new tab/window
+      window.open(data.deepLink, '_blank');
+      
+      // Show success message
+      setTimeout(() => {
+        // Refresh the page to update the connection status
+        router.reload();
+      }, 2000);
+    } else {
+      connectionError.value = data.message || 'Failed to connect to Telegram';
+    }
+  } catch (error) {
+    connectionError.value = 'Network error. Please try again.';
+  } finally {
+    isConnecting.value = false;
+  }
+};
 </script>
 
 <template>
@@ -121,6 +168,126 @@ const getRoleLabel = (role) => {
         <p class="text-gray-600 dark:text-gray-400">
           <span class="font-semibold capitalize">{{ getRoleLabel(user.role) }}</span>
         </p>
+      </div>
+
+      <!-- Telegram Connection Card -->
+      <div
+        v-if="!hasTelegramId && botUsername"
+        class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl border border-sidebar-border/70 dark:border-sidebar-border p-6 text-white"
+      >
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <div class="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mr-4">
+              <svg
+                class="w-6 h-6 text-white"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-white">
+                Telegram bilan bog'lanish
+              </h3>
+              <p class="text-blue-100 text-sm">
+                Fayllaringizni Telegram orqali yuklash va xabarlar olish uchun bog'laning
+              </p>
+            </div>
+          </div>
+          <button
+            @click="connectToTelegram"
+            :disabled="isConnecting"
+            class="inline-flex items-center px-6 py-3 bg-white/20 hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors backdrop-blur-sm"
+          >
+            <svg
+              v-if="isConnecting"
+              class="w-5 h-5 mr-2 animate-spin"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
+            </svg>
+            <svg
+              v-else
+              class="w-5 h-5 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M13 7l5 5m0 0l-5 5m5-5H6"
+              />
+            </svg>
+            {{ isConnecting ? 'Bog\'lanmoqda...' : 'Bog\'lanish' }}
+          </button>
+        </div>
+        
+        <!-- Error Message -->
+        <div
+          v-if="connectionError"
+          class="mt-4 p-4 bg-red-500/20 border border-red-500/30 rounded-lg"
+        >
+          <div class="flex items-center">
+            <svg
+              class="w-5 h-5 text-red-400 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span class="text-red-200 text-sm">{{ connectionError }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Telegram Connected Status -->
+      <div
+        v-if="hasTelegramId"
+        class="bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-800 p-4"
+      >
+        <div class="flex items-center">
+          <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center mr-3">
+            <svg
+              class="w-4 h-4 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+          <div>
+            <h4 class="text-sm font-medium text-green-800 dark:text-green-200">
+              Telegram bilan bog'langan
+            </h4>
+            <p class="text-xs text-green-600 dark:text-green-400">
+              Sizning hisobingiz Telegram bot bilan bog'langan
+            </p>
+          </div>
+        </div>
       </div>
 
       <!-- Role-Based Navigation -->
