@@ -277,7 +277,7 @@ const formatDate = (dateString) => {
       </div>
 
       <!-- Stats Cards -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
         <!-- Total Users -->
         <div
           class="group relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/30 border border-blue-200/50 dark:border-blue-800/50 hover:shadow-lg transition-all duration-300"
@@ -285,21 +285,21 @@ const formatDate = (dateString) => {
           <div
             class="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           ></div>
-          <div class="relative p-4">
-            <div class="flex items-center justify-between mb-2">
+          <div class="relative p-3">
+            <div class="flex items-center justify-between mb-1.5">
               <div
-                class="p-2 rounded-lg bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors duration-300"
+                class="p-1.5 rounded-lg bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors duration-300"
               >
-                <Users class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <Users class="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
-            <div class="space-y-1">
+            <div class="space-y-0.5">
               <p
                 class="text-xs font-medium text-blue-700/70 dark:text-blue-300/70 uppercase tracking-wide"
               >
                 {{ t("messages.total_users") }}
               </p>
-              <p class="text-2xl font-bold text-blue-900 dark:text-blue-100">
+              <p class="text-xl font-bold text-blue-900 dark:text-blue-100">
                 {{ users.total || 0 }}
               </p>
             </div>
@@ -313,21 +313,21 @@ const formatDate = (dateString) => {
           <div
             class="absolute inset-0 bg-gradient-to-br from-green-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           ></div>
-          <div class="relative p-4">
-            <div class="flex items-center justify-between mb-2">
+          <div class="relative p-3">
+            <div class="flex items-center justify-between mb-1.5">
               <div
-                class="p-2 rounded-lg bg-green-500/10 group-hover:bg-green-500/20 transition-colors duration-300"
+                class="p-1.5 rounded-lg bg-green-500/10 group-hover:bg-green-500/20 transition-colors duration-300"
               >
-                <Shield class="h-5 w-5 text-green-600 dark:text-green-400" />
+                <Shield class="h-4 w-4 text-green-600 dark:text-green-400" />
               </div>
             </div>
-            <div class="space-y-1">
+            <div class="space-y-0.5">
               <p
                 class="text-xs font-medium text-green-700/70 dark:text-green-300/70 uppercase tracking-wide"
               >
                 {{ t("messages.role_checker") }}
               </p>
-              <p class="text-2xl font-bold text-green-900 dark:text-green-100">
+              <p class="text-xl font-bold text-green-900 dark:text-green-100">
                 {{ (users.data || []).filter((u) => u.role === "checker").length }}
               </p>
             </div>
@@ -341,21 +341,21 @@ const formatDate = (dateString) => {
           <div
             class="absolute inset-0 bg-gradient-to-br from-amber-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           ></div>
-          <div class="relative p-4">
-            <div class="flex items-center justify-between mb-2">
+          <div class="relative p-3">
+            <div class="flex items-center justify-between mb-1.5">
               <div
-                class="p-2 rounded-lg bg-amber-500/10 group-hover:bg-amber-500/20 transition-colors duration-300"
+                class="p-1.5 rounded-lg bg-amber-500/10 group-hover:bg-amber-500/20 transition-colors duration-300"
               >
-                <UserCheck class="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                <UserCheck class="h-4 w-4 text-amber-600 dark:text-amber-400" />
               </div>
             </div>
-            <div class="space-y-1">
+            <div class="space-y-0.5">
               <p
                 class="text-xs font-medium text-amber-700/70 dark:text-amber-300/70 uppercase tracking-wide"
               >
                 {{ t("messages.role_registrator") }}
               </p>
-              <p class="text-2xl font-bold text-amber-900 dark:text-amber-100">
+              <p class="text-xl font-bold text-amber-900 dark:text-amber-100">
                 {{ (users.data || []).filter((u) => u.role === "registrator").length }}
               </p>
             </div>
@@ -369,21 +369,21 @@ const formatDate = (dateString) => {
           <div
             class="absolute inset-0 bg-gradient-to-br from-rose-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           ></div>
-          <div class="relative p-4">
-            <div class="flex items-center justify-between mb-2">
+          <div class="relative p-3">
+            <div class="flex items-center justify-between mb-1.5">
               <div
-                class="p-2 rounded-lg bg-rose-500/10 group-hover:bg-rose-500/20 transition-colors duration-300"
+                class="p-1.5 rounded-lg bg-rose-500/10 group-hover:bg-rose-500/20 transition-colors duration-300"
               >
-                <Crown class="h-5 w-5 text-rose-600 dark:text-rose-400" />
+                <Crown class="h-4 w-4 text-rose-600 dark:text-rose-400" />
               </div>
             </div>
-            <div class="space-y-1">
+            <div class="space-y-0.5">
               <p
                 class="text-xs font-medium text-rose-700/70 dark:text-rose-300/70 uppercase tracking-wide"
               >
                 {{ t("messages.role_ceo") }}
               </p>
-              <p class="text-2xl font-bold text-rose-900 dark:text-rose-100">
+              <p class="text-xl font-bold text-rose-900 dark:text-rose-100">
                 {{ (users.data || []).filter((u) => u.role === "ceo").length }}
               </p>
             </div>
@@ -391,74 +391,67 @@ const formatDate = (dateString) => {
         </div>
       </div>
 
-      <!-- Filters -->
+      <!-- Users Table with Integrated Filters -->
       <Card class="shadow-sm">
         <CardHeader class="pb-4">
-          <CardTitle class="flex items-center text-lg">
-            <Filter class="mr-2 h-5 w-5" />
-            {{ t("messages.filters") }}
-          </CardTitle>
-          <CardDescription class="text-sm">{{
-            t("messages.search_and_filter_users")
-          }}</CardDescription>
-        </CardHeader>
-        <CardContent class="pt-0">
-          <div class="flex flex-col sm:flex-row gap-4">
-            <div class="flex-1">
-              <div class="relative">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <CardTitle class="flex items-center text-lg">
+                <Users class="mr-2 h-5 w-5" />
+                {{ t("messages.users") }}
+              </CardTitle>
+              <CardDescription class="text-sm">
+                {{ t("messages.users_found", { count: users.total || 0 }) }}
+              </CardDescription>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+              <div class="relative flex-1 sm:min-w-[250px]">
                 <Search
                   class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
                 />
                 <Input
                   v-model="searchInput"
                   :placeholder="t('messages.search_users_placeholder')"
-                  class="pl-10 h-10"
+                  class="pl-10 h-9"
                 />
               </div>
-            </div>
-            <div class="flex gap-2">
-              <Select v-model="selectedRole" @update:model-value="handleRoleChange">
-                <SelectTrigger class="w-[180px] h-10">
-                  <SelectValue :placeholder="t('messages.all_roles')" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{{ t("messages.all_roles") }}</SelectItem>
-                  <SelectItem v-for="role in roles" :key="role" :value="role">
-                    {{ getRoleLabel(role) }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline" @click="clearFilters" class="h-10 px-3">
-                <X class="h-4 w-4" />
-              </Button>
+              <div class="flex gap-2">
+                <Select v-model="selectedRole" @update:model-value="handleRoleChange">
+                  <SelectTrigger class="w-[160px] h-9">
+                    <SelectValue :placeholder="t('messages.all_roles')" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{{ t("messages.all_roles") }}</SelectItem>
+                    <SelectItem v-for="role in roles" :key="role" :value="role">
+                      {{ getRoleLabel(role) }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" @click="clearFilters" class="h-9 px-3">
+                  <X class="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      <!-- Users Table -->
-      <Card class="shadow-sm">
-        <CardHeader class="pb-4">
-          <CardTitle class="flex items-center text-lg">
-            <Users class="mr-2 h-5 w-5" />
-            {{ t("messages.users") }}
-          </CardTitle>
-          <CardDescription class="text-sm">
-            {{ t("messages.users_found", { count: users.total || 0 }) }}
-          </CardDescription>
         </CardHeader>
         <CardContent class="pt-0">
           <div class="rounded-lg border overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow class="bg-muted/50">
-                  <TableHead class="font-semibold">{{ t("messages.user") }}</TableHead>
-                  <TableHead class="font-semibold">{{ t("messages.role") }}</TableHead>
-                  <TableHead class="font-semibold">{{ t("messages.files") }}</TableHead>
-                  <TableHead class="font-semibold">{{
+                  <TableHead class="font-semibold py-3">{{
+                    t("messages.user")
+                  }}</TableHead>
+                  <TableHead class="font-semibold py-3">{{
+                    t("messages.role")
+                  }}</TableHead>
+                  <TableHead class="font-semibold py-3 text-center">{{
+                    t("messages.files")
+                  }}</TableHead>
+                  <TableHead class="font-semibold py-3">{{
                     t("messages.joined_date")
                   }}</TableHead>
-                  <TableHead class="w-[100px] font-semibold">{{
+                  <TableHead class="w-[80px] font-semibold py-3 text-center">{{
                     t("messages.actions")
                   }}</TableHead>
                 </TableRow>
@@ -469,11 +462,11 @@ const formatDate = (dateString) => {
                   :key="user.id"
                   class="hover:bg-muted/30 transition-colors"
                 >
-                  <TableCell>
+                  <TableCell class="py-3">
                     <div class="flex items-center space-x-3">
-                      <Avatar class="h-10 w-10 ring-2 ring-muted">
+                      <Avatar class="h-8 w-8 ring-1 ring-muted">
                         <AvatarImage :src="user.avatar || ''" :alt="user.name || ''" />
-                        <AvatarFallback class="text-sm font-semibold">
+                        <AvatarFallback class="text-xs font-semibold">
                           {{ (user.name || "U").charAt(0).toUpperCase() }}
                         </AvatarFallback>
                       </Avatar>
@@ -485,30 +478,28 @@ const formatDate = (dateString) => {
                           {{ user.email || t("messages.no_email") }}
                         </div>
                         <div
-                          v-if="user.phone_number"
-                          class="text-xs text-muted-foreground truncate"
+                          class="flex items-center gap-2 text-xs text-muted-foreground"
                         >
-                          {{ user.phone_number }}
-                        </div>
-                        <div
-                          v-if="user.region"
-                          class="text-xs text-muted-foreground truncate"
-                        >
-                          {{ user.region }}
+                          <span v-if="user.phone_number" class="truncate">
+                            {{ user.phone_number }}
+                          </span>
+                          <span v-if="user.region" class="truncate">
+                            {{ user.region }}
+                          </span>
                         </div>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell class="py-3">
                     <Select
                       :model-value="user.role"
                       @update:model-value="updateUserRole(user, $event)"
                     >
-                      <SelectTrigger class="w-[140px] h-8">
+                      <SelectTrigger class="w-[130px] h-7 text-xs">
                         <SelectValue>
-                          <div class="flex items-center space-x-2">
-                            <component :is="getRoleIcon(user.role)" class="h-4 w-4" />
-                            <span>{{ getRoleLabel(user.role) }}</span>
+                          <div class="flex items-center space-x-1.5">
+                            <component :is="getRoleIcon(user.role)" class="h-3.5 w-3.5" />
+                            <span class="truncate">{{ getRoleLabel(user.role) }}</span>
                           </div>
                         </SelectValue>
                       </SelectTrigger>
@@ -540,45 +531,45 @@ const formatDate = (dateString) => {
                       </SelectContent>
                     </Select>
                   </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" class="font-medium text-xs">
+                  <TableCell class="py-3 text-center">
+                    <Badge variant="secondary" class="font-medium text-xs px-2 py-1">
                       {{ user.uploaded_files_count || 0 }}
                     </Badge>
                   </TableCell>
-                  <TableCell class="text-muted-foreground text-xs">
+                  <TableCell class="py-3 text-muted-foreground text-xs">
                     {{ formatDate(user.created_at) }}
                   </TableCell>
-                  <TableCell>
+                  <TableCell class="py-3 text-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger as-child>
-                        <Button variant="ghost" class="h-7 w-7 p-0 hover:bg-muted">
-                          <MoreHorizontal class="h-4 w-4" />
+                        <Button variant="ghost" class="h-6 w-6 p-0 hover:bg-muted">
+                          <MoreHorizontal class="h-3.5 w-3.5" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" class="w-48">
+                      <DropdownMenuContent align="end" class="w-44">
                         <DropdownMenuItem as-child>
                           <Link
                             :href="`/users/${user.id}`"
-                            class="flex items-center w-full"
+                            class="flex items-center w-full text-xs"
                           >
-                            <Eye class="mr-2 h-4 w-4" />
+                            <Eye class="mr-2 h-3.5 w-3.5" />
                             {{ t("messages.view_profile") }}
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem as-child>
                           <Link
                             :href="`/users/${user.id}/edit`"
-                            class="flex items-center w-full"
+                            class="flex items-center w-full text-xs"
                           >
-                            <Edit class="mr-2 h-4 w-4" />
+                            <Edit class="mr-2 h-3.5 w-3.5" />
                             {{ t("messages.edit") }}
                           </Link>
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           @click="deleteUser(user)"
-                          class="text-destructive focus:text-destructive cursor-pointer"
+                          class="text-destructive focus:text-destructive cursor-pointer text-xs"
                         >
-                          <Trash2 class="mr-2 h-4 w-4" />
+                          <Trash2 class="mr-2 h-3.5 w-3.5" />
                           {{ t("messages.delete_user") }}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -590,27 +581,27 @@ const formatDate = (dateString) => {
           </div>
 
           <!-- Pagination -->
-          <div v-if="users && users.links" class="mt-4">
+          <div v-if="users && users.links" class="mt-3">
             <nav class="flex items-center justify-between">
               <div class="flex-1 flex justify-between sm:hidden">
                 <Link
                   v-if="users.prev_page_url"
                   :href="users.prev_page_url"
-                  class="relative inline-flex items-center px-4 py-2 border border-input bg-background text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+                  class="relative inline-flex items-center px-3 py-1.5 border border-input bg-background text-xs font-medium rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
                   {{ t("messages.previous") }}
                 </Link>
                 <Link
                   v-if="users.next_page_url"
                   :href="users.next_page_url"
-                  class="ml-3 relative inline-flex items-center px-4 py-2 border border-input bg-background text-sm font-medium rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+                  class="ml-2 relative inline-flex items-center px-3 py-1.5 border border-input bg-background text-xs font-medium rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
                 >
                   {{ t("messages.next") }}
                 </Link>
               </div>
               <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
-                  <p class="text-sm text-muted-foreground">
+                  <p class="text-xs text-muted-foreground">
                     {{
                       t("messages.pagination_info", {
                         from: users.from || 0,
@@ -627,7 +618,7 @@ const formatDate = (dateString) => {
                         v-if="link.url"
                         :href="link.url"
                         v-html="link.label"
-                        class="relative inline-flex items-center px-4 py-2 border text-sm font-medium transition-colors"
+                        class="relative inline-flex items-center px-3 py-1.5 border text-xs font-medium transition-colors"
                         :class="[
                           link.active
                             ? 'z-10 bg-primary border-primary text-primary-foreground'
@@ -637,7 +628,7 @@ const formatDate = (dateString) => {
                       <span
                         v-else
                         v-html="link.label"
-                        class="relative inline-flex items-center px-4 py-2 border border-input bg-muted text-muted-foreground text-sm font-medium cursor-not-allowed"
+                        class="relative inline-flex items-center px-3 py-1.5 border border-input bg-muted text-muted-foreground text-xs font-medium cursor-not-allowed"
                       />
                     </template>
                   </nav>
