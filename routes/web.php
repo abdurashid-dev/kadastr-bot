@@ -17,6 +17,7 @@ Route::post('/language', [LanguageController::class, 'changeLanguage'])->name('l
 // Reset locale to default
 Route::get('/reset-locale', function () {
     session()->forget('locale');
+
     return redirect()->back();
 })->name('locale.reset');
 
@@ -57,14 +58,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('index');
         Route::get('create', [UserController::class, 'create'])->name('create');
         Route::post('/', [UserController::class, 'store'])->name('store');
+        Route::get('statistics', [UserController::class, 'statistics'])->name('statistics');
         Route::get('{user}/edit', [UserController::class, 'edit'])->name('edit');
         Route::put('{user}', [UserController::class, 'update'])->name('update');
-        Route::get('statistics', [UserController::class, 'statistics'])->name('statistics');
-        Route::get('{user}', [UserController::class, 'show'])->name('show');
         Route::put('{user}/role', [UserController::class, 'updateRole'])->name('update-role');
+        Route::post('{user}/send-message', [UserController::class, 'sendMessage'])->name('send-message');
+        Route::get('{user}', [UserController::class, 'show'])->name('show');
         Route::delete('{user}', [UserController::class, 'destroy'])->name('destroy');
     });
 });
 
-require __DIR__ . '/settings.php';
-require __DIR__ . '/auth.php';
+require __DIR__.'/settings.php';
+require __DIR__.'/auth.php';

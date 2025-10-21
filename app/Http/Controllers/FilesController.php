@@ -302,12 +302,21 @@ class FilesController extends Controller
     public function download(UploadedFile $file)
     {
         try {
-            // Get the bot token from database
-            $bot = TelegraphBot::first();
+            $maxTelegramFileSize = 20 * 1024 * 1024; // 20MB
+
+            // Check if file is too large for Telegram Bot API
+            if ($file->file_size > $maxTelegramFileSize) {
+                // Send file via Telegram instead of direct download
+                $this->sendFileViaTelegram($file);
+
+                return redirect()->back()->with('success', 'Large file is being sent to your Telegram. Please check your messages.');
+            }
 
             if (! $file->telegram_file_id) {
                 return redirect()->back()->with('error', 'File not available for download.');
             }
+
+            $bot = TelegraphBot::first();
 
             if (! $bot || ! $bot->token) {
                 return redirect()->back()->with('error', 'Bot configuration error.');
@@ -323,6 +332,7 @@ class FilesController extends Controller
             if (! $fileInfoResponse->successful()) {
                 Log::error('Failed to get file info from Telegram', [
                     'file_id' => $file->id,
+                    'telegram_file_id' => $file->telegram_file_id,
                     'status' => $fileInfoResponse->status(),
                     'response' => $fileInfoResponse->body(),
                 ]);
@@ -335,6 +345,7 @@ class FilesController extends Controller
             if (! isset($fileInfo['result']['file_path'])) {
                 Log::error('No file_path in Telegram response', [
                     'file_id' => $file->id,
+                    'telegram_file_id' => $file->telegram_file_id,
                     'response' => $fileInfo,
                 ]);
 
@@ -363,6 +374,7 @@ class FilesController extends Controller
             if (! $fileResponse->successful()) {
                 Log::error('Failed to download file from Telegram', [
                     'file_id' => $file->id,
+                    'telegram_file_id' => $file->telegram_file_id,
                     'status' => $fileResponse->status(),
                     'file_size' => $fileSize,
                 ]);
@@ -373,7 +385,10 @@ class FilesController extends Controller
             $fileContent = $fileResponse->body();
 
             if (empty($fileContent)) {
-                Log::error('Empty file content received', ['file_id' => $file->id]);
+                Log::error('Empty file content received', [
+                    'file_id' => $file->id,
+                    'telegram_file_id' => $file->telegram_file_id,
+                ]);
 
                 return redirect()->back()->with('error', 'File content is empty.');
             }
@@ -407,7 +422,7 @@ class FilesController extends Controller
 
             // Create a temporary file to stream the download
             $tempFile = tmpfile();
-            if (!$tempFile) {
+            if (! $tempFile) {
                 throw new \Exception('Could not create temporary file');
             }
 
@@ -417,11 +432,11 @@ class FilesController extends Controller
             $chunkSize = 8192; // 8KB chunks
             $handle = fopen($url, 'rb');
 
-            if (!$handle) {
+            if (! $handle) {
                 throw new \Exception('Could not open file stream');
             }
 
-            while (!feof($handle)) {
+            while (! feof($handle)) {
                 $chunk = fread($handle, $chunkSize);
                 if ($chunk !== false) {
                     fwrite($tempFile, $chunk);
@@ -433,7 +448,7 @@ class FilesController extends Controller
 
             // Return streaming response
             return response()->stream(function () use ($tempFile) {
-                while (!feof($tempFile)) {
+                while (! feof($tempFile)) {
                     echo fread($tempFile, 8192);
                     flush();
                 }
@@ -453,6 +468,78 @@ class FilesController extends Controller
             ]);
 
             return redirect()->back()->with('error', 'Failed to download large file. Please try again.');
+        }
+    }
+
+    private function sendFileViaTelegram(UploadedFile $file)
+    {
+        try {
+            $bot = TelegraphBot::first();
+
+            if (! $bot || ! $bot->token) {
+                Log::error('Bot configuration not found for sending file via Telegram');
+
+                return;
+            }
+
+            // Get the user who uploaded the file
+            $user = $file->user;
+
+            if (! $user || ! $user->telegram_id) {
+                Log::error('User or Telegram ID not found', [
+                    'file_id' => $file->id,
+                    'user_id' => $user?->id,
+                    'telegram_id' => $user?->telegram_id,
+                ]);
+
+                return;
+            }
+
+            // Send file via Telegram Bot API
+            $response = Http::timeout(30)->post("https://api.telegram.org/bot{$bot->token}/sendDocument", [
+                'chat_id' => $user->telegram_id,
+                'document' => $file->telegram_file_id,
+                'caption' => "📁 <b>Fayl yuklab olish</b>\n\n" .
+                    "<b>Nomi:</b> {$file->name}\n" .
+                    "<b>Fayl:</b> {$file->original_filename}\n" .
+                    '<b>Hajmi:</b> ' . $this->formatFileSize($file->file_size) . "\n" .
+                    "<b>ID:</b> #{$file->id}\n\n" .
+                    '✅ Bu faylni web sahifasidan yuklab olish uchun yuborildi.',
+                'parse_mode' => 'HTML',
+            ]);
+
+            if ($response->successful()) {
+                Log::info('Large file sent via Telegram successfully', [
+                    'file_id' => $file->id,
+                    'user_id' => $user->id,
+                    'telegram_id' => $user->telegram_id,
+                ]);
+            } else {
+                Log::error('Failed to send large file via Telegram', [
+                    'file_id' => $file->id,
+                    'user_id' => $user->id,
+                    'response_status' => $response->status(),
+                    'response_body' => $response->body(),
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error sending file via Telegram', [
+                'file_id' => $file->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    private function formatFileSize($bytes)
+    {
+        if ($bytes >= 1073741824) {
+            return number_format($bytes / 1073741824, 2) . ' GB';
+        } elseif ($bytes >= 1048576) {
+            return number_format($bytes / 1048576, 2) . ' MB';
+        } elseif ($bytes >= 1024) {
+            return number_format($bytes / 1024, 2) . ' KB';
+        } else {
+            return $bytes . ' bytes';
         }
     }
 

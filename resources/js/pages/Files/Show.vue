@@ -57,6 +57,12 @@ const breadcrumbs = [
   },
 ];
 
+// Check if file is too large for download
+const isFileTooLarge = computed(() => {
+  const maxSize = 20 * 1024 * 1024; // 20MB in bytes
+  return props.file.file_size > maxSize;
+});
+
 // Status options based on user role
 const statusOptions = computed(() => {
   const baseOptions = [
@@ -275,10 +281,13 @@ const deleteFile = () => {
         </div>
 
         <div class="flex items-center space-x-2">
-          <Button variant="outline" as-child>
+          <Button 
+            variant="outline" 
+            as-child
+          >
             <a :href="`/files/${file.id}/download`" target="_blank">
               <Download class="mr-2 h-4 w-4" />
-              {{ t("messages.download") }}
+              {{ isFileTooLarge ? "Send to Telegram" : t("messages.download") }}
             </a>
           </Button>
           <Button @click="openStatusDialog">
@@ -343,6 +352,19 @@ const deleteFile = () => {
                   />
                   {{ getStatusBadge(file.status).text }}
                 </Badge>
+              </div>
+            </div>
+
+            <!-- Large file info -->
+            <div 
+              v-if="isFileTooLarge" 
+              class="text-xs bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 px-3 py-2 rounded mt-2"
+            >
+              <div class="font-medium text-blue-800 dark:text-blue-200 mb-1">
+                📱 Large File Notice:
+              </div>
+              <div class="text-blue-700 dark:text-blue-300">
+                This file is larger than 20MB. Click "Send to Telegram" to receive the file in your Telegram chat.
               </div>
             </div>
 

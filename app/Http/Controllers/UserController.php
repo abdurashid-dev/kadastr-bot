@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
+use DefStudio\Telegraph\Models\TelegraphBot;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -215,5 +218,62 @@ class UserController extends Controller
         return Inertia::render('Users/Statistics', [
             'stats' => $stats,
         ]);
+    }
+
+    /**
+     * Send a message to user via Telegram.
+     */
+    public function sendMessage(Request $request, User $user): RedirectResponse
+    {
+        $this->authorize('view', $user);
+
+        $request->validate([
+            'message' => 'required|string|max:4000',
+        ]);
+
+        if (! $user->telegram_id) {
+            return redirect()->back()->with('error', 'User does not have a Telegram ID.');
+        }
+
+        try {
+            $bot = TelegraphBot::first();
+
+            if (! $bot || ! $bot->token) {
+                return redirect()->back()->with('error', 'Bot configuration not found.');
+            }
+
+            $response = Http::timeout(30)->post("https://api.telegram.org/bot{$bot->token}/sendMessage", [
+                'chat_id' => $user->telegram_id,
+                'text' => "📨 <b>Xabar</b>\n\n".$request->message,
+                'parse_mode' => 'HTML',
+            ]);
+
+            if ($response->successful()) {
+                Log::info('Message sent via Telegram successfully', [
+                    'user_id' => $user->id,
+                    'telegram_id' => $user->telegram_id,
+                    'message_length' => strlen($request->message),
+                ]);
+
+                return redirect()->back()->with('success', 'Message sent successfully to '.$user->name.' via Telegram.');
+            } else {
+                Log::error('Failed to send message via Telegram', [
+                    'user_id' => $user->id,
+                    'telegram_id' => $user->telegram_id,
+                    'response_status' => $response->status(),
+                    'response_body' => $response->body(),
+                ]);
+
+                return redirect()->back()->with('error', 'Failed to send message. Please try again.');
+            }
+        } catch (\Exception $e) {
+            Log::error('Error sending message via Telegram', [
+                'user_id' => $user->id,
+                'telegram_id' => $user->telegram_id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->back()->with('error', 'An error occurred while sending the message. Please try again.');
+        }
     }
 }

@@ -556,53 +556,32 @@ class Telegram extends WebhookHandler
     protected function processFileUpload($user, $fileName, $file, $waitMessageId = null)
     {
         try {
-            // Check file size limits
-            $maxFileSize = 1.5 * 1024 * 1024 * 1024; // 1.5GB
-            if ($file['file_size'] > $maxFileSize) {
-                $errorMessage = "<b>❌ Fayl juda katta!</b>\n\n" .
-                    "Fayl hajmi: " . $this->formatFileSize($file['file_size']) . "\n" .
-                    "Maksimal ruxsat etilgan hajm: " . $this->formatFileSize($maxFileSize) . "\n\n" .
-                    "Iltimos, kichikroq fayl yuboring.";
+            $telegramFilePath = null;
 
-                if ($waitMessageId) {
-                    $this->chat->edit($waitMessageId)->message($errorMessage)->html()->send();
-                } else {
-                    $this->chat->message($errorMessage)->html()->send();
-                }
-                return;
+            // Telegram Bot API limit: files >20MB cannot be downloaded via standard API
+            $maxTelegramFileSize = 20 * 1024 * 1024; // 20MB in bytes
+
+            if ($file['file_size'] <= $maxTelegramFileSize) {
+                // Small file: get file path from Telegram
+                $telegramFilePath = $this->getTelegramFilePath($file['file_id']);
             }
-
-            // Get Telegram file path (but don't download the file)
-            $telegramFilePath = $this->getTelegramFilePath($file['file_id']);
-
-            if (!$telegramFilePath) {
-                $errorMessage = "<b>❌ Xatolik yuz berdi!</b>\n\n" .
-                    "Fayl ma'lumotlarini olishda xatolik yuz berdi. " .
-                    "Fayl juda katta bo'lishi mumkin yoki Telegram serverida muammo bor.\n\n" .
-                    "Iltimos, kichikroq fayl yuboring yoki keyinroq qaytadan urinib ko'ring.";
-
-                if ($waitMessageId) {
-                    $this->chat->edit($waitMessageId)->message($errorMessage)->html()->send();
-                } else {
-                    $this->chat->message($errorMessage)->html()->send();
-                }
-                return;
-            }
-
-            // Save file info to database (keeping file on Telegram servers)
             $uploadedFile = UploadedFile::create([
                 'user_id' => $user->id,
                 'name' => $fileName,
                 'original_filename' => $file['file_name'],
                 'telegram_file_id' => $file['file_id'],
-                'file_path' => $telegramFilePath, // Use the actual Telegram file path
+                'file_path' => $telegramFilePath ?: 'telegram://' . $file['file_id'],
                 'file_type' => $file['type'],
                 'mime_type' => $file['mime_type'],
                 'file_size' => $file['file_size'],
                 'status' => 'pending',
             ]);
 
-            // Send success message
+            $sizeWarning = '';
+            if ($file['file_size'] > $maxTelegramFileSize) {
+                $sizeWarning = "\n\n⚠️ <i>Fayl 20MB dan katta. Faylni faqat Telegram orqali ko'rish mumkin.</i>";
+            }
+
             $fileInfo = "<b>📁 Fayl muvaffaqiyatli yuklandi!</b>\n\n" .
                 "<b>Nomi:</b> {$fileName}\n" .
                 "<b>Turi:</b> {$file['type']}\n" .
@@ -610,22 +589,20 @@ class Telegram extends WebhookHandler
                 '<b>Hajmi:</b> ' . $this->formatFileSize($file['file_size']) . "\n" .
                 "<b>Foydalanuvchi:</b> {$user->name}\n" .
                 "<b>Yuklash ID:</b> #{$uploadedFile->id}\n\n" .
-                "✅ Faylingiz Telegramda saqlandi va adminlarga ko'rib chiqish uchun yuborildi.";
+                "✅ Faylingiz qabul qilindi va adminlarga ko'rib chiqish uchun yuborildi.{$sizeWarning}";
 
             if ($waitMessageId) {
-                // Edit the wait message with success info
                 $this->chat->edit($waitMessageId)->message($fileInfo)->html()->send();
             } else {
-                // Send new message if no wait message ID provided
                 $this->chat->message($fileInfo)->html()->send();
             }
 
-            // Log successful upload
             Log::info('File uploaded successfully', [
                 'user_id' => $user->id,
                 'file_id' => $uploadedFile->id,
                 'telegram_file_id' => $file['file_id'],
-                'telegram_file_path' => $telegramFilePath,
+                'file_size' => $file['file_size'],
+                'is_large_file' => $file['file_size'] > $maxTelegramFileSize,
             ]);
         } catch (\Exception $e) {
             Log::error('File upload failed', [
@@ -637,10 +614,8 @@ class Telegram extends WebhookHandler
             $errorMessage = "<b>❌ Xatolik yuz berdi!</b>\n\nKechirasiz, fayl ma'lumotlarini saqlashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring yoki qo'llab-quvvatlash bilan bog'laning.";
 
             if ($waitMessageId) {
-                // Edit the wait message with error info
                 $this->chat->edit($waitMessageId)->message($errorMessage)->html()->send();
             } else {
-                // Send new message if no wait message ID provided
                 $this->chat->message($errorMessage)->html()->send();
             }
         }
@@ -649,15 +624,14 @@ class Telegram extends WebhookHandler
     protected function getTelegramFilePath($fileId)
     {
         try {
-            // Get file info from Telegram API (just for the path, not downloading)
-            $response = Http::timeout(60)->get("https://api.telegram.org/bot{$this->bot->token}/getFile", [
+            $response = Http::timeout(30)->get("https://api.telegram.org/bot{$this->bot->token}/getFile", [
                 'file_id' => $fileId,
             ]);
 
             if ($response->successful()) {
                 $data = $response->json();
                 if (isset($data['result']['file_path'])) {
-                    return $data['result']['file_path']; // Return Telegram's file path
+                    return $data['result']['file_path'];
                 }
             } else {
                 Log::error('Failed to get Telegram file path', [

@@ -14,6 +14,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import {
   Card,
   CardContent,
   CardDescription,
@@ -23,7 +32,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Edit, Save, X, FileText } from "lucide-vue-next";
+import { ArrowLeft, Edit, Save, X, FileText, MessageSquare } from "lucide-vue-next";
 
 const { t } = useTranslations();
 
@@ -32,6 +41,9 @@ const props = defineProps({
 });
 
 const editing = ref(false);
+const messageDialogOpen = ref(false);
+const messageText = ref("");
+const sendingMessage = ref(false);
 const form = ref({
   name: props.user.name,
   email: props.user.email,
@@ -81,6 +93,34 @@ const updateRole = async (newRole) => {
     );
   } catch (error) {
     console.error("Error updating user role:", error);
+  }
+};
+
+const openMessageDialog = () => {
+  messageDialogOpen.value = true;
+  messageText.value = "";
+};
+
+const closeMessageDialog = () => {
+  messageDialogOpen.value = false;
+  messageText.value = "";
+  sendingMessage.value = false;
+};
+
+const sendMessage = async () => {
+  if (!messageText.value.trim()) return;
+  
+  sendingMessage.value = true;
+  
+  try {
+    await router.post(`/users/${props.user.id}/send-message`, {
+      message: messageText.value.trim(),
+    });
+    
+    closeMessageDialog();
+  } catch (error) {
+    console.error("Error sending message:", error);
+    sendingMessage.value = false;
   }
 };
 
@@ -267,6 +307,14 @@ const formatDate = (dateString) => {
                   </Button>
                 </template>
               </div>
+
+              <!-- Send Message Button -->
+              <div v-if="user.telegram_id" class="mt-4">
+                <Button @click="openMessageDialog" variant="outline" class="w-full">
+                  <MessageSquare class="mr-2 h-4 w-4" />
+                  Send Message via Telegram
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -333,5 +381,48 @@ const formatDate = (dateString) => {
         </div>
       </div>
     </div>
+
+    <!-- Send Message Dialog -->
+    <Dialog v-model:open="messageDialogOpen">
+      <DialogContent class="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Send Message to {{ user.name }}</DialogTitle>
+          <DialogDescription>
+            Send a message to this user via Telegram. The message will be delivered to their Telegram chat.
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div class="space-y-4">
+          <div>
+            <Label for="message" class="text-sm font-medium">Message</Label>
+            <Textarea
+              id="message"
+              v-model="messageText"
+              placeholder="Type your message here..."
+              class="mt-1 min-h-[100px]"
+              :disabled="sendingMessage"
+            />
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button 
+            variant="outline" 
+            @click="closeMessageDialog"
+            :disabled="sendingMessage"
+          >
+            Cancel
+          </Button>
+          <Button 
+            @click="sendMessage"
+            :disabled="!messageText.trim() || sendingMessage"
+          >
+            <MessageSquare v-if="!sendingMessage" class="mr-2 h-4 w-4" />
+            <span v-if="sendingMessage">Sending...</span>
+            <span v-else>Send Message</span>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </AppLayout>
 </template>
