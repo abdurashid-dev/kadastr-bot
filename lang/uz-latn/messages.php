@@ -254,7 +254,7 @@ return [
 
     // Authentication
     'login_title' => 'Tizimga kirish',
-    'login_subtitle' => 'Hisobingizga kirish uchun ma\'lumotlaringizni kiriting',
+    'login_description' => 'Hisobingizga kirish uchun ma\'lumotlaringizni kiriting',
     'email_address' => 'Elektron pochta manzili',
     'password' => 'Parol',
     'remember_me' => 'Meni eslab qol',
@@ -265,6 +265,11 @@ return [
     'verify_email' => 'Elektron pochtani tasdiqlash',
     'reset_password' => 'Parolni tiklash',
     'confirm_password' => 'Parolni tasdiqlash',
+    'email_placeholder' => 'email@example.com',
+    'password_placeholder' => 'Parol',
+    'document_management' => 'Hujjat boshqaruvi',
+    'secure_system' => 'Xavfsiz tizim',
+    'user_management' => 'Foydalanuvchi boshqaruvi',
 
     // Settings
     'profile_settings' => 'Profil sozlamalari',
