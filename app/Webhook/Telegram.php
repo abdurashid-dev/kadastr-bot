@@ -753,12 +753,24 @@ class Telegram extends WebhookHandler
         $telegramUsername = $user->username() ?? $user->firstName();
         $telegramId = (string) $user->id();
 
-        // Check if user already exists with this phone number
-        $existingUser = User::where('phone_number', $phoneNumber)->first();
+        // Check if user already exists with this phone number (including soft deleted)
+        $existingUser = User::withTrashed()->where('phone_number', $phoneNumber)->first();
 
         if ($existingUser) {
+            // Restore if soft deleted
+            if ($existingUser->trashed()) {
+                $existingUser->restore();
+            }
+
             // Update the existing user's telegram_id for future identification
             $existingUser->update(['telegram_id' => $telegramId]);
+
+            Log::info('User restored and linked via Telegram contact', [
+                'user_id' => $existingUser->id,
+                'phone_number' => $phoneNumber,
+                'telegram_id' => $telegramId,
+            ]);
+
             $this->chat->message("<b>🎉 Xush kelibsiz, {$existingUser->name}!</b>\n\nHisobingiz Telegram bilan bog'landi.")
                 ->html()
                 ->send();
@@ -983,15 +995,106 @@ class Telegram extends WebhookHandler
             }
         }
 
-        // Create new user with phone number, full name and region
-        $newUser = User::create([
-            'name' => $tempUserData['full_name'] ?? $tempUserData['telegram_username'],
-            'email' => $tempUserData['phone_number'] . '@telegram.local',
-            'phone_number' => $tempUserData['phone_number'],
-            'region' => $selectedRegion,
-            'telegram_id' => $tempUserData['telegram_id'],
-            'password' => bcrypt(\Illuminate\Support\Str::random(16)),
-        ]);
+        // Check if user with this email already exists (including soft deleted)
+        $email = $tempUserData['phone_number'] . '@telegram.local';
+
+        try {
+            $existingUser = User::withTrashed()->where('email', $email)->first();
+
+            if ($existingUser) {
+                // Restore if soft deleted
+                if ($existingUser->trashed()) {
+                    $existingUser->restore();
+                }
+
+                // Update user information
+                $existingUser->update([
+                    'name' => $tempUserData['full_name'] ?? $tempUserData['telegram_username'],
+                    'phone_number' => $tempUserData['phone_number'],
+                    'region' => $selectedRegion,
+                    'telegram_id' => $tempUserData['telegram_id'],
+                    'password' => bcrypt(\Illuminate\Support\Str::random(16)),
+                ]);
+
+                $newUser = $existingUser;
+
+                Log::info('User restored and updated via Telegram registration', [
+                    'user_id' => $newUser->id,
+                    'email' => $email,
+                    'telegram_id' => $tempUserData['telegram_id'],
+                ]);
+            } else {
+                // Create new user with phone number, full name and region
+                $newUser = User::create([
+                    'name' => $tempUserData['full_name'] ?? $tempUserData['telegram_username'],
+                    'email' => $email,
+                    'phone_number' => $tempUserData['phone_number'],
+                    'region' => $selectedRegion,
+                    'telegram_id' => $tempUserData['telegram_id'],
+                    'password' => bcrypt(\Illuminate\Support\Str::random(16)),
+                ]);
+
+                Log::info('New user created via Telegram registration', [
+                    'user_id' => $newUser->id,
+                    'email' => $email,
+                    'telegram_id' => $tempUserData['telegram_id'],
+                ]);
+            }
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Handle unique constraint violations (PostgreSQL error code 23505)
+            $errorCode = $e->getCode();
+            $errorMessage = $e->getMessage();
+
+            if ($errorCode === '23505' || $errorCode === 23505 || str_contains($errorMessage, 'duplicate key value violates unique constraint')) {
+                // Try to find and restore the existing user
+                $existingUser = User::withTrashed()->where('email', $email)->first();
+
+                if ($existingUser) {
+                    if ($existingUser->trashed()) {
+                        $existingUser->restore();
+                    }
+
+                    $existingUser->update([
+                        'name' => $tempUserData['full_name'] ?? $tempUserData['telegram_username'],
+                        'phone_number' => $tempUserData['phone_number'],
+                        'region' => $selectedRegion,
+                        'telegram_id' => $tempUserData['telegram_id'],
+                    ]);
+
+                    $newUser = $existingUser;
+
+                    Log::info('User restored after unique constraint violation', [
+                        'user_id' => $newUser->id,
+                        'email' => $email,
+                        'telegram_id' => $tempUserData['telegram_id'],
+                    ]);
+                } else {
+                    Log::error('Failed to create/restore user via Telegram', [
+                        'email' => $email,
+                        'telegram_id' => $tempUserData['telegram_id'],
+                        'error' => $e->getMessage(),
+                    ]);
+
+                    $this->chat->message("<b>❌ Xatolik!</b>\n\nRo'yxatdan o'tishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring yoki qo'llab-quvvatlash bilan bog'laning.")
+                        ->html()
+                        ->send();
+
+                    return;
+                }
+            } else {
+                Log::error('Failed to create/restore user via Telegram', [
+                    'email' => $email,
+                    'telegram_id' => $tempUserData['telegram_id'],
+                    'error' => $e->getMessage(),
+                ]);
+
+                $this->chat->message("<b>❌ Xatolik!</b>\n\nRo'yxatdan o'tishda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring yoki qo'llab-quvvatlash bilan bog'laning.")
+                    ->html()
+                    ->send();
+
+                return;
+            }
+        }
 
         // Clean up temporary data
         Cache::forget('telegram_temp_user_' . $userId);
