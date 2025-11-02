@@ -4,6 +4,7 @@ import { Head, Link, router } from "@inertiajs/vue3";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -30,7 +31,7 @@ import {
   X,
   LoaderCircle,
 } from "lucide-vue-next";
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useTranslations } from "@/composables/useTranslations";
 
 const { t } = useTranslations();
@@ -43,6 +44,10 @@ const props = defineProps({
   user: {
     type: Object,
     required: true,
+  },
+  flash: {
+    type: Object,
+    default: () => ({}),
   },
 });
 
@@ -102,6 +107,28 @@ const adminNotes = ref(props.file.admin_notes || "");
 const feedbackFiles = ref([]);
 const fileInput = ref(null);
 const isUpdatingStatus = ref(false);
+const successMessage = ref(props.flash?.success || "");
+
+// Watch for flash message changes
+watch(
+  () => props.flash?.success,
+  (newValue) => {
+    if (newValue) {
+      successMessage.value = newValue;
+      setTimeout(() => {
+        successMessage.value = "";
+      }, 5000);
+    }
+  },
+  { immediate: true }
+);
+
+// Clear messages after 5 seconds if they exist on mount
+if (successMessage.value) {
+  setTimeout(() => {
+    successMessage.value = "";
+  }, 5000);
+}
 
 // Accepted status specific fields
 const registeredCount = ref(0);
@@ -236,10 +263,13 @@ const updateStatus = () => {
 
   router.post(`/files/${props.file.id}/status`, formData, {
     forceFormData: true,
+    preserveState: false,
+    preserveScroll: true,
     onSuccess: () => {
       statusDialogOpen.value = false;
       feedbackFiles.value = [];
       isUpdatingStatus.value = false;
+      // Message will come from flash after page reload
     },
     onError: () => {
       isUpdatingStatus.value = false;
@@ -248,6 +278,19 @@ const updateStatus = () => {
       isUpdatingStatus.value = false;
     },
   });
+};
+
+const handleDownload = () => {
+  if (isFileTooLarge.value) {
+    // For large files, send to Telegram - redirect will handle the response
+    router.visit(`/files/${props.file.id}/download`, {
+      preserveState: true,
+      preserveScroll: true,
+    });
+  } else {
+    // For small files, open download in new tab
+    window.open(`/files/${props.file.id}/download`, "_blank");
+  }
 };
 
 const deleteFile = () => {
@@ -266,6 +309,15 @@ const deleteFile = () => {
 
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="flex h-full flex-1 flex-col gap-6 rounded-xl p-6">
+      <!-- Success/Error Messages -->
+      <Alert
+        v-if="successMessage"
+        class="border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200"
+      >
+        <CheckCircle class="h-4 w-4" />
+        <AlertDescription>{{ successMessage }}</AlertDescription>
+      </Alert>
+
       <!-- Header -->
       <div class="flex items-center justify-between">
         <div class="flex items-center space-x-4">
@@ -281,14 +333,9 @@ const deleteFile = () => {
         </div>
 
         <div class="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            as-child
-          >
-            <a :href="`/files/${file.id}/download`" target="_blank">
-              <Download class="mr-2 h-4 w-4" />
-              {{ isFileTooLarge ? "Send to Telegram" : t("messages.download") }}
-            </a>
+          <Button variant="outline" @click="handleDownload">
+            <Download class="mr-2 h-4 w-4" />
+            {{ isFileTooLarge ? "Send to Telegram" : t("messages.download") }}
           </Button>
           <Button @click="openStatusDialog">
             <Edit class="mr-2 h-4 w-4" />
@@ -356,15 +403,16 @@ const deleteFile = () => {
             </div>
 
             <!-- Large file info -->
-            <div 
-              v-if="isFileTooLarge" 
+            <div
+              v-if="isFileTooLarge"
               class="text-xs bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 px-3 py-2 rounded mt-2"
             >
               <div class="font-medium text-blue-800 dark:text-blue-200 mb-1">
                 📱 Large File Notice:
               </div>
               <div class="text-blue-700 dark:text-blue-300">
-                This file is larger than 20MB. Click "Send to Telegram" to receive the file in your Telegram chat.
+                This file is larger than 20MB. Click "Send to Telegram" to receive the
+                file in your Telegram chat.
               </div>
             </div>
 

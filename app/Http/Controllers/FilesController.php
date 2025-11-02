@@ -153,7 +153,7 @@ class FilesController extends Controller
             $this->sendStatusNotification($file, $request->status, $request->admin_notes, $feedbackFilePaths);
         }
 
-        return redirect()->back()->with('success', 'File status updated successfully.');
+        return back()->with('success', 'File status updated successfully.');
     }
 
     private function sendStatusNotification(UploadedFile $file, string $newStatus, ?string $adminNotes = null, array $feedbackFilePaths = [])
@@ -299,15 +299,21 @@ class FilesController extends Controller
         }
     }
 
-    public function download(UploadedFile $file)
+    public function download(Request $request, UploadedFile $file)
     {
         try {
             $maxTelegramFileSize = 20 * 1024 * 1024; // 20MB
 
             // Check if file is too large for Telegram Bot API
             if ($file->file_size > $maxTelegramFileSize) {
-                // Send file via Telegram instead of direct download
-                $this->sendFileViaTelegram($file);
+                // Send file via Telegram to the authenticated user who clicked (not the file owner)
+                $targetUser = $request->user();
+
+                if (! $targetUser || ! $targetUser->telegram_id) {
+                    return redirect()->back()->with('error', 'You must have a Telegram account connected to receive this file. Please connect your Telegram account in the dashboard.');
+                }
+
+                $this->sendFileViaTelegram($file, $targetUser);
 
                 return redirect()->back()->with('success', 'Large file is being sent to your Telegram. Please check your messages.');
             }
@@ -471,7 +477,7 @@ class FilesController extends Controller
         }
     }
 
-    private function sendFileViaTelegram(UploadedFile $file)
+    private function sendFileViaTelegram(UploadedFile $file, \App\Models\User $targetUser)
     {
         try {
             $bot = TelegraphBot::first();
@@ -482,22 +488,19 @@ class FilesController extends Controller
                 return;
             }
 
-            // Get the user who uploaded the file
-            $user = $file->user;
-
-            if (! $user || ! $user->telegram_id) {
-                Log::error('User or Telegram ID not found', [
+            if (! $targetUser || ! $targetUser->telegram_id) {
+                Log::error('Target user or Telegram ID not found', [
                     'file_id' => $file->id,
-                    'user_id' => $user?->id,
-                    'telegram_id' => $user?->telegram_id,
+                    'target_user_id' => $targetUser?->id,
+                    'telegram_id' => $targetUser?->telegram_id,
                 ]);
 
                 return;
             }
 
-            // Send file via Telegram Bot API
+            // Send file via Telegram Bot API to the target user (who clicked the button)
             $response = Http::timeout(30)->post("https://api.telegram.org/bot{$bot->token}/sendDocument", [
-                'chat_id' => $user->telegram_id,
+                'chat_id' => $targetUser->telegram_id,
                 'document' => $file->telegram_file_id,
                 'caption' => "📁 <b>Fayl yuklab olish</b>\n\n" .
                     "<b>Nomi:</b> {$file->name}\n" .
@@ -511,13 +514,14 @@ class FilesController extends Controller
             if ($response->successful()) {
                 Log::info('Large file sent via Telegram successfully', [
                     'file_id' => $file->id,
-                    'user_id' => $user->id,
-                    'telegram_id' => $user->telegram_id,
+                    'target_user_id' => $targetUser->id,
+                    'target_telegram_id' => $targetUser->telegram_id,
+                    'file_owner_id' => $file->user_id,
                 ]);
             } else {
                 Log::error('Failed to send large file via Telegram', [
                     'file_id' => $file->id,
-                    'user_id' => $user->id,
+                    'target_user_id' => $targetUser->id,
                     'response_status' => $response->status(),
                     'response_body' => $response->body(),
                 ]);
@@ -525,6 +529,7 @@ class FilesController extends Controller
         } catch (\Exception $e) {
             Log::error('Error sending file via Telegram', [
                 'file_id' => $file->id,
+                'target_user_id' => $targetUser->id,
                 'error' => $e->getMessage(),
             ]);
         }

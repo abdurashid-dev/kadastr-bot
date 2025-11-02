@@ -648,11 +648,6 @@ class Telegram extends WebhookHandler
                 'status' => 'pending',
             ]);
 
-            $sizeWarning = '';
-            if ($file['file_size'] > $maxTelegramFileSize) {
-                $sizeWarning = "\n\n⚠️ <i>Fayl 20MB dan katta. Faylni faqat Telegram orqali ko'rish mumkin.</i>";
-            }
-
             $fileInfo = "<b>📁 Fayl muvaffaqiyatli yuklandi!</b>\n\n" .
                 "<b>Nomi:</b> {$fileName}\n" .
                 "<b>Turi:</b> {$file['type']}\n" .
@@ -660,12 +655,26 @@ class Telegram extends WebhookHandler
                 '<b>Hajmi:</b> ' . $this->formatFileSize($file['file_size']) . "\n" .
                 "<b>Foydalanuvchi:</b> {$user->name}\n" .
                 "<b>Yuklash ID:</b> #{$uploadedFile->id}\n\n" .
-                "✅ Faylingiz qabul qilindi va adminlarga ko'rib chiqish uchun yuborildi.{$sizeWarning}";
+                "✅ Faylingiz qabul qilindi va adminlarga ko'rib chiqish uchun yuborildi.";
+
+            $keyboard = ReplyKeyboard::make()
+                ->row([
+                    ReplyButton::make('📤 Yuklash'),
+                    ReplyButton::make('📁 Fayllar'),
+                    ReplyButton::make('💡 Yordam'),
+                ])
+                ->row([
+                    ReplyButton::make('🔄 Yangilash'),
+                ]);
 
             if ($waitMessageId) {
                 $this->chat->edit($waitMessageId)->message($fileInfo)->html()->send();
+                $this->chat->message('Quyidagi tugmalardan birini tanlang:')
+                    ->html()
+                    ->replyKeyboard($keyboard)
+                    ->send();
             } else {
-                $this->chat->message($fileInfo)->html()->send();
+                $this->chat->message($fileInfo)->html()->replyKeyboard($keyboard)->send();
             }
 
             Log::info('File uploaded successfully', [
@@ -684,10 +693,24 @@ class Telegram extends WebhookHandler
 
             $errorMessage = "<b>❌ Xatolik yuz berdi!</b>\n\nKechirasiz, fayl ma'lumotlarini saqlashda xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring yoki qo'llab-quvvatlash bilan bog'laning.";
 
+            $keyboard = ReplyKeyboard::make()
+                ->row([
+                    ReplyButton::make('📤 Yuklash'),
+                    ReplyButton::make('📁 Fayllar'),
+                    ReplyButton::make('💡 Yordam'),
+                ])
+                ->row([
+                    ReplyButton::make('🔄 Yangilash'),
+                ]);
+
             if ($waitMessageId) {
                 $this->chat->edit($waitMessageId)->message($errorMessage)->html()->send();
+                $this->chat->message('Quyidagi tugmalardan birini tanlang:')
+                    ->html()
+                    ->replyKeyboard($keyboard)
+                    ->send();
             } else {
-                $this->chat->message($errorMessage)->html()->send();
+                $this->chat->message($errorMessage)->html()->replyKeyboard($keyboard)->send();
             }
         }
     }
