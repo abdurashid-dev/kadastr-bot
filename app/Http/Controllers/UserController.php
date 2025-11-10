@@ -4,12 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
+use App\Jobs\SendTelegramMessage;
 use App\Models\User;
-use DefStudio\Telegraph\Models\TelegraphBot;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -117,6 +116,9 @@ class UserController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
+        $perPage = $request->get('per_page', 15);
+        $perPage = in_array($perPage, [10, 25, 50, 100]) ? (int) $perPage : 15;
+
         $users = User::query()
             ->withCount('uploadedFiles')
             ->when($request->search, function ($query, $search) {
@@ -130,12 +132,12 @@ class UserController extends Controller
                 $query->where('role', $role);
             })
             ->orderBy('created_at', 'desc')
-            ->paginate(15)
+            ->paginate($perPage)
             ->withQueryString();
 
         return Inertia::render('Users/Index', [
             'users' => $users,
-            'filters' => $request->only(['search', 'role']),
+            'filters' => $request->only(['search', 'role', 'per_page']),
             'roles' => ['user', 'checker', 'registrator', 'ceo'],
         ]);
     }
@@ -236,44 +238,83 @@ class UserController extends Controller
         }
 
         try {
-            $bot = TelegraphBot::first();
+            SendTelegramMessage::dispatch(
+                auth()->id(),
+                $user->id,
+                $request->message,
+                false
+            );
 
-            if (! $bot || ! $bot->token) {
-                return redirect()->back()->with('error', 'Bot configuration not found.');
-            }
-
-            $response = Http::timeout(30)->post("https://api.telegram.org/bot{$bot->token}/sendMessage", [
-                'chat_id' => $user->telegram_id,
-                'text' => "📨 <b>Xabar</b>\n\n".$request->message,
-                'parse_mode' => 'HTML',
+            Log::info('Message job dispatched', [
+                'user_id' => $user->id,
+                'sender_id' => auth()->id(),
             ]);
 
-            if ($response->successful()) {
-                Log::info('Message sent via Telegram successfully', [
-                    'user_id' => $user->id,
-                    'telegram_id' => $user->telegram_id,
-                    'message_length' => strlen($request->message),
-                ]);
-
-                return redirect()->back()->with('success', 'Message sent successfully to '.$user->name.' via Telegram.');
-            } else {
-                Log::error('Failed to send message via Telegram', [
-                    'user_id' => $user->id,
-                    'telegram_id' => $user->telegram_id,
-                    'response_status' => $response->status(),
-                    'response_body' => $response->body(),
-                ]);
-
-                return redirect()->back()->with('error', 'Failed to send message. Please try again.');
-            }
+            return redirect()->back()->with('success', 'Message queued successfully. It will be sent to ' . $user->name . ' via Telegram shortly.');
         } catch (\Exception $e) {
-            Log::error('Error sending message via Telegram', [
+            Log::error('Error queuing message', [
                 'user_id' => $user->id,
-                'telegram_id' => $user->telegram_id,
                 'error' => $e->getMessage(),
             ]);
 
-            return redirect()->back()->with('error', 'An error occurred while sending the message. Please try again.');
+            return redirect()->back()->with('error', 'An error occurred while queuing the message. Please try again.');
+        }
+    }
+
+    /**
+     * Send a message to multiple users via Telegram.
+     */
+    public function bulkSendMessage(Request $request): RedirectResponse
+    {
+        $this->authorize('viewAny', User::class);
+
+        $request->validate([
+            'message' => 'required|string|max:4000',
+            'user_ids' => 'nullable|array',
+            'select_all' => 'nullable|boolean',
+        ]);
+
+        try {
+            $users = $request->boolean('select_all')
+                ? User::whereNotNull('telegram_id')->get()
+                : User::whereIn('id', $request->user_ids ?? [])
+                ->whereNotNull('telegram_id')
+                ->get();
+
+            if ($users->isEmpty()) {
+                return redirect()->back()->with('error', 'No users with Telegram IDs found.');
+            }
+
+            $senderId = auth()->id();
+            $isBulk = $request->boolean('select_all') || count($users) > 1;
+            $totalUsers = $users->count();
+
+            // Dispatch jobs for each user with small delays to avoid rate limiting
+            $delay = 0;
+            foreach ($users as $user) {
+                SendTelegramMessage::dispatch(
+                    $senderId,
+                    $user->id,
+                    $request->message,
+                    $isBulk
+                )->delay(now()->addSeconds($delay));
+
+                $delay += 1; // 1 second delay between each job
+            }
+
+            Log::info('Bulk message jobs dispatched', [
+                'total_users' => $totalUsers,
+                'sender_id' => $senderId,
+                'is_bulk' => $isBulk,
+            ]);
+
+            return redirect()->back()->with('success', "Messages queued successfully for {$totalUsers} user(s). They will be sent shortly.");
+        } catch (\Exception $e) {
+            Log::error('Error in bulk message sending', [
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->back()->with('error', 'An error occurred while queuing messages. Please try again.');
         }
     }
 }

@@ -67,10 +67,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('{user}', [UserController::class, 'update'])->name('update');
         Route::put('{user}/role', [UserController::class, 'updateRole'])->name('update-role');
         Route::post('{user}/send-message', [UserController::class, 'sendMessage'])->name('send-message');
+        Route::post('bulk-send-message', [UserController::class, 'bulkSendMessage'])->name('bulk-send-message');
         Route::get('{user}', [UserController::class, 'show'])->name('show');
         Route::delete('{user}', [UserController::class, 'destroy'])->name('destroy');
     });
 });
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';

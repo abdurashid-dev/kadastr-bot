@@ -177,4 +177,19 @@ return [
 
     // Waiting Files Description
     'waiting_files_description' => 'Files waiting for final review by construction officer',
+
+    // User Selection
+    'selected_users' => 'Selected Users',
+    'all_users' => 'All',
+    'selected' => 'selected',
+    'send_telegram_message' => 'Send Telegram Message',
+    'clear_selection' => 'Clear',
+    'enter_message' => 'Enter message to send:',
+    'messages_sent_success' => 'Messages sent successfully',
+    'send_message_error' => 'Failed to send messages',
+    'select_this_page' => 'Select this page',
+    'select_all' => 'Select all',
+    'send' => 'Send',
+    'sending' => 'Sending...',
+    'per_page' => 'Per page',
 ];

@@ -1,7 +1,7 @@
 <script setup>
 import AppLayout from "@/layouts/AppLayout.vue";
 import { Head, Link, router } from "@inertiajs/vue3";
-import { ref, watch } from "vue";
+import { ref, watch, computed } from "vue";
 import { useTranslations } from "@/composables/useTranslations";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import {
   MoreHorizontal,
   Users,
   BarChart3,
@@ -52,6 +61,8 @@ import {
   Shield,
   User,
   Edit,
+  ChevronDown as ChevronDownIcon,
+  Send,
 } from "lucide-vue-next";
 
 const { t } = useTranslations();
@@ -78,8 +89,122 @@ const props = defineProps({
 // Simple reactive state
 const searchInput = ref(props.filters?.search || "");
 const selectedRole = ref(props.filters?.role || "all");
+const perPage = ref(props.filters?.per_page || 15);
 const successMessage = ref(props.flash?.success || "");
 const errorMessage = ref("");
+
+// Selection state
+const selectedUsers = ref([]);
+const selectAllMode = ref(false); // Track if "all users" across all pages are selected
+
+// Message dialog state
+const isMessageDialogOpen = ref(false);
+const messageText = ref("");
+const isSending = ref(false);
+
+const allSelected = computed(() => {
+  if (selectAllMode.value) return true;
+  const userIds = (props.users.data || []).map((u) => u.id);
+  return userIds.length > 0 && userIds.every((id) => selectedUsers.value.includes(id));
+});
+
+const someSelected = computed(() => {
+  return selectedUsers.value.length > 0 && !allSelected.value && !selectAllMode.value;
+});
+
+const selectCurrentPage = () => {
+  selectAllMode.value = false;
+  selectedUsers.value = (props.users.data || []).map((u) => u.id);
+};
+
+const selectAllUsers = () => {
+  selectAllMode.value = true;
+  selectedUsers.value = (props.users.data || []).map((u) => u.id);
+};
+
+const clearSelection = () => {
+  selectAllMode.value = false;
+  selectedUsers.value = [];
+};
+
+const selectedCount = computed(() => {
+  if (selectAllMode.value) {
+    return props.users.total || 0;
+  }
+  return selectedUsers.value.length;
+});
+
+const openMessageDialog = () => {
+  messageText.value = "";
+  isMessageDialogOpen.value = true;
+};
+
+const closeMessageDialog = () => {
+  isMessageDialogOpen.value = false;
+  messageText.value = "";
+};
+
+const sendMessageToSelected = () => {
+  if (!messageText.value || !messageText.value.trim()) {
+    return;
+  }
+
+  isSending.value = true;
+
+  const userIds = selectAllMode.value 
+    ? 'all' 
+    : selectedUsers.value;
+
+  router.post('/users/bulk-send-message', {
+    user_ids: userIds,
+    message: messageText.value.trim(),
+    select_all: selectAllMode.value,
+  }, {
+    onSuccess: () => {
+      successMessage.value = t("messages.messages_sent_success");
+      closeMessageDialog();
+      setTimeout(() => {
+        successMessage.value = "";
+      }, 5000);
+    },
+    onError: (errors) => {
+      errorMessage.value = errors.message || t("messages.send_message_error");
+      setTimeout(() => {
+        errorMessage.value = "";
+      }, 5000);
+    },
+    onFinish: () => {
+      isSending.value = false;
+    },
+  });
+};
+
+const handleUserSelect = (userId, event) => {
+  const checked = event.target.checked;
+  
+  // If in "select all" mode and user unchecks, exit that mode
+  if (selectAllMode.value && !checked) {
+    selectAllMode.value = false;
+    // Start with all current page users except the unchecked one
+    selectedUsers.value = (props.users.data || [])
+      .map((u) => u.id)
+      .filter(id => id !== userId);
+    return;
+  }
+  
+  if (checked) {
+    if (!selectedUsers.value.includes(userId)) {
+      selectedUsers.value.push(userId);
+    }
+  } else {
+    selectedUsers.value = selectedUsers.value.filter(id => id !== userId);
+  }
+};
+
+const isUserSelected = (userId) => {
+  if (selectAllMode.value) return true;
+  return selectedUsers.value.includes(userId);
+};
 
 // Clear messages after 5 seconds
 if (successMessage.value) {
@@ -106,7 +231,9 @@ const performSearch = () => {
   const searchValue = searchInput.value ? searchInput.value.trim() : "";
   const roleValue = selectedRole.value === "all" ? "" : selectedRole.value;
 
-  const params = {};
+  const params = {
+    per_page: perPage.value,
+  };
   if (searchValue) {
     params.search = searchValue;
   }
@@ -118,6 +245,11 @@ const performSearch = () => {
     preserveState: true,
     replace: true,
   });
+};
+
+const handlePerPageChange = (value) => {
+  perPage.value = parseInt(value, 10);
+  performSearch();
 };
 
 // Debounced search
@@ -136,6 +268,7 @@ const handleRoleChange = (role) => {
 const clearFilters = () => {
   searchInput.value = "";
   selectedRole.value = "all";
+  // Keep per_page setting when clearing filters
   performSearch();
 };
 
@@ -435,10 +568,79 @@ const formatDate = (dateString) => {
           </div>
         </CardHeader>
         <CardContent class="pt-0">
+          <!-- Selection Panel -->
+          <div
+            v-if="selectedCount > 0 || selectAllMode"
+            class="mb-4 p-3 bg-primary/5 border border-primary/20 rounded-lg"
+          >
+            <div class="flex items-center justify-between">
+              <div class="text-sm">
+                <span class="font-semibold text-foreground">{{ t("messages.selected_users") }}:</span>
+                <span class="ml-2 text-muted-foreground">
+                  <template v-if="selectAllMode">
+                    {{ t("messages.all_users") }} {{ props.users.total || 0 }} {{ t("messages.users") }}
+                  </template>
+                  <template v-else>
+                    {{ selectedUsers.length }} {{ t("messages.selected") }}
+                  </template>
+                </span>
+              </div>
+              <div class="flex items-center gap-2">
+                <Button
+                  variant="default"
+                  size="sm"
+                  @click="openMessageDialog"
+                  class="h-8 text-xs"
+                >
+                  <Send class="mr-2 h-3.5 w-3.5" />
+                  {{ t("messages.send_telegram_message") }}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  @click="clearSelection"
+                  class="h-8 text-xs"
+                >
+                  {{ t("messages.clear_selection") }}
+                </Button>
+              </div>
+            </div>
+          </div>
+
           <div class="rounded-lg border overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow class="bg-muted/50">
+                  <TableHead class="w-[100px] py-3">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger as-child>
+                        <Button variant="ghost" size="sm" class="h-8 -ml-3 gap-1 px-2">
+                          <input
+                            type="checkbox"
+                            :checked="allSelected"
+                            :indeterminate.prop="someSelected"
+                            class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0 cursor-pointer pointer-events-none"
+                            aria-label="Select users"
+                          />
+                          <ChevronDownIcon class="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" class="w-56">
+                        <DropdownMenuItem @click="selectCurrentPage" class="cursor-pointer">
+                          <div class="flex items-center justify-between w-full">
+                            <span>{{ t("messages.select_this_page") }}</span>
+                            <Badge variant="secondary" class="ml-2">{{ (props.users.data || []).length }}</Badge>
+                          </div>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem @click="selectAllUsers" class="cursor-pointer">
+                          <div class="flex items-center justify-between w-full">
+                            <span>{{ t("messages.select_all") }}</span>
+                            <Badge variant="secondary" class="ml-2">{{ props.users.total || 0 }}</Badge>
+                          </div>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableHead>
                   <TableHead class="font-semibold py-3">{{
                     t("messages.user")
                   }}</TableHead>
@@ -463,6 +665,15 @@ const formatDate = (dateString) => {
                   class="hover:bg-muted/30 transition-colors"
                 >
                   <TableCell class="py-3">
+                    <input
+                      type="checkbox"
+                      :checked="isUserSelected(user.id)"
+                      @change="(e) => handleUserSelect(user.id, e)"
+                      class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-2 focus:ring-primary focus:ring-offset-0 cursor-pointer"
+                      :aria-label="`Select ${user.name}`"
+                    />
+                  </TableCell>
+                  <TableCell class="py-3">
                     <div class="flex items-center space-x-3">
                       <Avatar class="h-8 w-8 ring-1 ring-muted">
                         <AvatarImage :src="user.avatar || ''" :alt="user.name || ''" />
@@ -472,7 +683,12 @@ const formatDate = (dateString) => {
                       </Avatar>
                       <div class="min-w-0 flex-1">
                         <div class="font-semibold text-foreground truncate text-sm">
-                          {{ user.name || t("messages.unknown_user") }}
+                          <Link
+                            :href="`/users/${user.id}`"
+                            class="hover:text-primary hover:underline transition-colors"
+                          >
+                            {{ user.name || t("messages.unknown_user") }}
+                          </Link>
                         </div>
                         <div class="text-xs text-muted-foreground truncate">
                           {{ user.email || t("messages.no_email") }}
@@ -600,7 +816,7 @@ const formatDate = (dateString) => {
                 </Link>
               </div>
               <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                <div>
+                <div class="flex items-center gap-4">
                   <p class="text-xs text-muted-foreground">
                     {{
                       t("messages.pagination_info", {
@@ -610,6 +826,20 @@ const formatDate = (dateString) => {
                       })
                     }}
                   </p>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs text-muted-foreground">{{ t("messages.per_page") || "Per page" }}:</span>
+                    <Select :model-value="perPage.toString()" @update:model-value="handlePerPageChange">
+                      <SelectTrigger class="w-20 h-7 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="25">25</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div>
                   <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
@@ -639,5 +869,45 @@ const formatDate = (dateString) => {
         </CardContent>
       </Card>
     </div>
+
+    <!-- Send Message Dialog -->
+    <Dialog v-model:open="isMessageDialogOpen">
+      <DialogContent class="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>{{ t("messages.send_telegram_message") }}</DialogTitle>
+          <DialogDescription>
+            {{ t("messages.enter_message") }}
+            <span class="block mt-1 text-xs text-muted-foreground">
+              <template v-if="selectAllMode">
+                {{ t("messages.all_users") }} {{ props.users.total || 0 }} {{ t("messages.users") }}
+              </template>
+              <template v-else>
+                {{ selectedUsers.length }} {{ t("messages.selected") }}
+              </template>
+            </span>
+          </DialogDescription>
+        </DialogHeader>
+        <div class="py-4">
+          <Textarea
+            v-model="messageText"
+            :placeholder="t('messages.enter_message')"
+            class="min-h-[120px] resize-none"
+            :maxlength="4000"
+          />
+          <p class="mt-2 text-xs text-muted-foreground text-right">
+            {{ messageText.length }} / 4000
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" @click="closeMessageDialog" :disabled="isSending">
+            {{ t("messages.cancel") }}
+          </Button>
+          <Button @click="sendMessageToSelected" :disabled="!messageText.trim() || isSending">
+            <Send class="mr-2 h-4 w-4" />
+            {{ isSending ? t("messages.sending") : t("messages.send") }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </AppLayout>
 </template>

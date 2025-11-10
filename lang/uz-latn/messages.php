@@ -557,4 +557,18 @@ return [
         'Furqat tuman' => 'Furqat tuman',
         'Sox tuman' => 'Sox tuman',
     ],
+
+    // User Selection
+    'selected_users' => 'Tanlangan foydalanuvchilar',
+    'all_users' => 'Barcha',
+    'selected' => 'tanlangan',
+    'send_telegram_message' => 'Telegram orqali xabar yuborish',
+    'clear_selection' => 'Tozalash',
+    'enter_message' => 'Yuboriladigan xabarni kiriting:',
+    'messages_sent_success' => 'Xabarlar muvaffaqiyatli yuborildi',
+    'send_message_error' => 'Xabarlarni yuborishda xatolik yuz berdi',
+    'select_this_page' => 'Ushbu sahifani tanlash',
+    'select_all' => 'Barchasini tanlash',
+    'send' => 'Yuborish',
+    'sending' => 'Yuborilmoqda...',
 ];
