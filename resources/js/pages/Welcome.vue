@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, usePage } from "@inertiajs/vue3";
+import AppearanceSwitcher from "@/components/AppearanceSwitcher.vue";
 import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
 import { useTranslations } from "@/composables/useTranslations";
 import { computed } from "vue";
@@ -27,8 +28,8 @@ const availableLocales = computed(
             {{ t("messages.welcome_title") }}
           </h2>
         </div>
-        <div class="flex items-center gap-4">
-          <!-- Language Switcher -->
+        <div class="flex items-center gap-2">
+          <AppearanceSwitcher />
           <LanguageSwitcher
             :current-locale="locale"
             :available-locales="availableLocales"

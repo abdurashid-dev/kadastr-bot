@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppearanceSwitcher from "@/components/AppearanceSwitcher.vue";
 import AppLogo from "@/components/AppLogo.vue";
 import AppLogoIcon from "@/components/AppLogoIcon.vue";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
@@ -79,7 +80,8 @@ const mainNavItems: NavItem[] = [
     <div
       class="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700"
     >
-      <div class="mx-auto flex h-10 items-center justify-end px-4 md:max-w-7xl">
+      <div class="mx-auto flex h-10 items-center justify-end gap-2 px-4 md:max-w-7xl">
+        <AppearanceSwitcher />
         <LanguageSwitcher
           :current-locale="locale"
           :available-locales="availableLocales"

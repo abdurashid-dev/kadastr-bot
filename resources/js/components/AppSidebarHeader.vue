@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppearanceSwitcher from "@/components/AppearanceSwitcher.vue";
 import Breadcrumbs from "@/components/Breadcrumbs.vue";
 import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -33,7 +34,8 @@ withDefaults(
       </template>
     </div>
 
-    <div class="ml-auto">
+    <div class="ml-auto flex items-center gap-2">
+      <AppearanceSwitcher />
       <LanguageSwitcher :current-locale="locale" :available-locales="availableLocales" />
     </div>
   </header>
