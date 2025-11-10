@@ -145,7 +145,7 @@ class UserController extends Controller
     /**
      * Display the specified user.
      */
-    public function show(User $user): Response
+    public function show(Request $request, User $user): Response
     {
         $this->authorize('view', $user);
 
@@ -154,8 +154,19 @@ class UserController extends Controller
             $query->latest()->limit(10);
         }]);
 
+        $perPage = $request->get('messages_per_page', 15);
+        $perPage = in_array($perPage, [10, 15, 25, 50]) ? (int) $perPage : 15;
+
+        $telegramMessages = \App\Models\TelegramMessage::where('recipient_id', $user->id)
+            ->with('sender:id,name')
+            ->latest()
+            ->paginate($perPage)
+            ->withQueryString();
+
         return Inertia::render('Users/Show', [
             'user' => $user,
+            'telegramMessages' => $telegramMessages,
+            'filters' => $request->only(['messages_per_page']),
         ]);
     }
 
