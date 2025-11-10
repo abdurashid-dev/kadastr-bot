@@ -64,39 +64,12 @@ const closeDropdown = () => {
 
 const changeLanguage = (locale: string) => {
   if (locale !== props.currentLocale) {
-    // Create a form and submit it to ensure proper redirect handling
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/language';
-    form.style.display = 'none';
-    
-    // Add CSRF token
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-    if (csrfToken) {
-      const csrfInput = document.createElement('input');
-      csrfInput.type = 'hidden';
-      csrfInput.name = '_token';
-      csrfInput.value = csrfToken;
-      form.appendChild(csrfInput);
-    } else {
-      console.error('CSRF token not found');
-      closeDropdown();
-      return;
-    }
-    
-    // Add locale input
-    const localeInput = document.createElement('input');
-    localeInput.type = 'hidden';
-    localeInput.name = 'locale';
-    localeInput.value = locale;
-    form.appendChild(localeInput);
-    
-    // Submit form
-    document.body.appendChild(form);
-    form.submit();
-  } else {
-    closeDropdown();
+    router.post('/language', { locale }, {
+      preserveState: false,
+      preserveScroll: false,
+    });
   }
+  closeDropdown();
 };
 
 // Close dropdown when clicking outside
