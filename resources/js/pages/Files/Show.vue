@@ -12,6 +12,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,6 +31,7 @@ import {
   Upload,
   X,
   LoaderCircle,
+  Clipboard,
 } from "lucide-vue-next";
 import { ref, computed, watch } from "vue";
 import { useTranslations } from "@/composables/useTranslations";
@@ -108,6 +110,12 @@ const feedbackFiles = ref([]);
 const fileInput = ref(null);
 const isUpdatingStatus = ref(false);
 const successMessage = ref(props.flash?.success || "");
+const isGettingFromClipboard = ref(false);
+const clipboardMessage = ref('');
+const imageLightboxOpen = ref(false);
+const lightboxImageUrl = ref('');
+const lightboxImageName = ref('');
+const lightboxBlobUrl = ref(null); // Store the blob URL we create for lightbox
 
 // Watch for flash message changes
 watch(
@@ -133,7 +141,6 @@ if (successMessage.value) {
 // Accepted status specific fields
 const registeredCount = ref(0);
 const notRegisteredCount = ref(0);
-const acceptedNote = ref("");
 
 const getFileIcon = (fileType) => {
   switch (fileType) {
@@ -210,12 +217,26 @@ const formatDate = (dateString) => {
 const openStatusDialog = () => {
   newStatus.value = props.file.status;
   adminNotes.value = props.file.admin_notes || "";
+  // Close lightbox if open
+  if (imageLightboxOpen.value) {
+    closeImageLightbox();
+  }
+  // Clear existing files and revoke preview URLs
+  feedbackFiles.value.forEach(file => {
+    if (file?.previewUrl) {
+      try {
+        URL.revokeObjectURL(file.previewUrl);
+      } catch (e) {
+        // Ignore errors if URL was already revoked
+      }
+    }
+  });
   feedbackFiles.value = [];
+  clipboardMessage.value = '';
 
   // Initialize accepted status fields
   registeredCount.value = props.file.registered_count || 0;
   notRegisteredCount.value = props.file.not_registered_count || 0;
-  acceptedNote.value = props.file.accepted_note || "";
 
   statusDialogOpen.value = true;
 };
@@ -223,6 +244,12 @@ const openStatusDialog = () => {
 const handleFileSelect = (event) => {
   const files = Array.from(event.target.files);
   if (files.length > 0) {
+    // Create preview URLs for image files
+    files.forEach(file => {
+      if (isImageFile(file)) {
+        file.previewUrl = URL.createObjectURL(file);
+      }
+    });
     feedbackFiles.value = [...feedbackFiles.value, ...files];
     // Reset input to allow selecting the same files again if needed
     if (fileInput.value) {
@@ -231,11 +258,219 @@ const handleFileSelect = (event) => {
   }
 };
 
+const handlePaste = (event) => {
+  // Only handle paste when status dialog is open
+  if (!statusDialogOpen.value) {
+    return;
+  }
+
+  const items = event.clipboardData?.items;
+  if (!items) {
+    return;
+  }
+
+  const pastedFiles = [];
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (item.kind === 'file') {
+      const file = item.getAsFile();
+      if (file) {
+        pastedFiles.push(file);
+      }
+    }
+  }
+
+  if (pastedFiles.length > 0) {
+    // Create preview URLs for image files
+    pastedFiles.forEach(file => {
+      if (isImageFile(file)) {
+        file.previewUrl = URL.createObjectURL(file);
+      }
+    });
+    feedbackFiles.value = [...feedbackFiles.value, ...pastedFiles];
+    event.preventDefault();
+  }
+};
+
+const getFromClipboard = async () => {
+  isGettingFromClipboard.value = true;
+  clipboardMessage.value = '';
+
+  try {
+    // Check if Clipboard API is available
+    if (!navigator.clipboard || !navigator.clipboard.read) {
+      // Fallback: try to read from paste event
+      clipboardMessage.value = t('messages.paste_files_hint') || 'Please press Ctrl+V (or Cmd+V on Mac) to paste files';
+      setTimeout(() => {
+        clipboardMessage.value = '';
+      }, 3000);
+      isGettingFromClipboard.value = false;
+      return;
+    }
+
+    const clipboardItems = await navigator.clipboard.read();
+    const pastedFiles = [];
+
+    for (const clipboardItem of clipboardItems) {
+      for (const type of clipboardItem.types) {
+        if (type.startsWith('image/') || type.startsWith('application/') || type.startsWith('text/')) {
+          const blob = await clipboardItem.getType(type);
+          const extension = type.split('/')[1]?.split(';')[0] || 'file';
+          const fileName = `pasted-${Date.now()}.${extension}`;
+          const file = new File([blob], fileName, { type });
+          pastedFiles.push(file);
+        }
+      }
+    }
+
+    if (pastedFiles.length > 0) {
+      // Create preview URLs for image files
+      pastedFiles.forEach(file => {
+        if (isImageFile(file)) {
+          file.previewUrl = URL.createObjectURL(file);
+        }
+      });
+      feedbackFiles.value = [...feedbackFiles.value, ...pastedFiles];
+      clipboardMessage.value = t('messages.files_added_from_clipboard', { count: pastedFiles.length }) || `${pastedFiles.length} file(s) added from clipboard`;
+      setTimeout(() => {
+        clipboardMessage.value = '';
+      }, 2000);
+    } else {
+      clipboardMessage.value = t('messages.no_files_in_clipboard') || 'No files found in clipboard';
+      setTimeout(() => {
+        clipboardMessage.value = '';
+      }, 3000);
+    }
+  } catch (error) {
+    // Clipboard API might not be available or user denied permission
+    clipboardMessage.value = t('messages.paste_files_hint') || 'Please press Ctrl+V (or Cmd+V on Mac) to paste files';
+    setTimeout(() => {
+      clipboardMessage.value = '';
+    }, 3000);
+  } finally {
+    isGettingFromClipboard.value = false;
+  }
+};
+
+// Helper function to check if file is an image
+const isImageFile = (file) => {
+  return file.type?.startsWith('image/') || false;
+};
+
+// Helper function to get preview URL
+const getFilePreviewUrl = (file) => {
+  if (isImageFile(file) && file.previewUrl) {
+    return file.previewUrl;
+  }
+  return null;
+};
+
+// Open image lightbox
+const openImageLightbox = (file) => {
+  if (isImageFile(file)) {
+    // Always create a fresh blob URL for the lightbox to ensure it persists
+    // This prevents issues if the file's previewUrl gets revoked
+    // Revoke any existing lightbox blob URL first
+    if (lightboxBlobUrl.value) {
+      try {
+        URL.revokeObjectURL(lightboxBlobUrl.value);
+      } catch (e) {
+        // Ignore errors
+      }
+    }
+    // Create a new blob URL specifically for the lightbox
+    lightboxBlobUrl.value = URL.createObjectURL(file);
+    lightboxImageUrl.value = lightboxBlobUrl.value;
+    lightboxImageName.value = file.name;
+    imageLightboxOpen.value = true;
+  }
+};
+
+// Close image lightbox
+const closeImageLightbox = () => {
+  // Revoke the blob URL we created for the lightbox
+  if (lightboxBlobUrl.value) {
+    try {
+      URL.revokeObjectURL(lightboxBlobUrl.value);
+    } catch (e) {
+      // Ignore errors if URL was already revoked
+    }
+    lightboxBlobUrl.value = null;
+  }
+  imageLightboxOpen.value = false;
+  lightboxImageUrl.value = '';
+  lightboxImageName.value = '';
+};
+
+// Clean up object URLs when component unmounts or files change
+watch(feedbackFiles, (newFiles, oldFiles) => {
+  // Revoke old preview URLs that are no longer in the new list
+  if (oldFiles) {
+    oldFiles.forEach(file => {
+      if (isImageFile(file) && file.previewUrl) {
+        // Only revoke if this URL is not in the new files and not currently in lightbox
+        const stillExists = newFiles.some(f => f?.previewUrl === file.previewUrl);
+        const isInLightbox = lightboxImageUrl.value === file.previewUrl;
+        if (!stillExists && !isInLightbox) {
+          try {
+            URL.revokeObjectURL(file.previewUrl);
+          } catch (e) {
+            // Ignore errors if URL was already revoked
+          }
+        }
+      }
+    });
+  }
+  // Create preview URLs for new image files
+  newFiles.forEach(file => {
+    if (isImageFile(file) && !file.previewUrl) {
+      file.previewUrl = URL.createObjectURL(file);
+    }
+  });
+}, { deep: true });
+
+// Add paste event listener when dialog opens
+watch(statusDialogOpen, (isOpen) => {
+  if (isOpen) {
+    // Add paste listener to document
+    document.addEventListener('paste', handlePaste);
+  } else {
+    // Remove paste listener when dialog closes
+    document.removeEventListener('paste', handlePaste);
+  }
+});
+
 const removeFeedbackFile = (index) => {
+  const file = feedbackFiles.value[index];
+  // Revoke preview URL if it exists and not currently in lightbox
+  if (file?.previewUrl) {
+    const isInLightbox = lightboxBlobUrl.value && lightboxImageUrl.value === file.previewUrl;
+    if (!isInLightbox) {
+      try {
+        URL.revokeObjectURL(file.previewUrl);
+      } catch (e) {
+        // Ignore errors if URL was already revoked
+      }
+    }
+  }
   feedbackFiles.value.splice(index, 1);
 };
 
 const clearAllFiles = () => {
+  // Close lightbox if open
+  if (imageLightboxOpen.value) {
+    closeImageLightbox();
+  }
+  // Revoke all preview URLs
+  feedbackFiles.value.forEach(file => {
+    if (file.previewUrl) {
+      try {
+        URL.revokeObjectURL(file.previewUrl);
+      } catch (e) {
+        // Ignore errors if URL was already revoked
+      }
+    }
+  });
   feedbackFiles.value = [];
   if (fileInput.value) {
     fileInput.value.value = "";
@@ -253,7 +488,6 @@ const updateStatus = () => {
   if (newStatus.value === "accepted") {
     formData.append("registered_count", registeredCount.value);
     formData.append("not_registered_count", notRegisteredCount.value);
-    formData.append("accepted_note", acceptedNote.value);
   }
 
   // Append multiple feedback files
@@ -266,8 +500,15 @@ const updateStatus = () => {
     preserveState: false,
     preserveScroll: true,
     onSuccess: () => {
+      // Revoke all preview URLs before clearing
+      feedbackFiles.value.forEach(file => {
+        if (file?.previewUrl) {
+          URL.revokeObjectURL(file.previewUrl);
+        }
+      });
       statusDialogOpen.value = false;
       feedbackFiles.value = [];
+      clipboardMessage.value = '';
       isUpdatingStatus.value = false;
       // Message will come from flash after page reload
     },
@@ -557,16 +798,6 @@ const deleteFile = () => {
                 />
               </div>
             </div>
-
-            <div>
-              <Label for="accepted_note">{{ t("messages.approval_notes") }}</Label>
-              <Textarea
-                id="accepted_note"
-                v-model="acceptedNote"
-                :placeholder="t('messages.approval_notes_placeholder')"
-                class="mt-1 min-h-[60px]"
-              />
-            </div>
           </div>
 
           <div>
@@ -592,6 +823,18 @@ const deleteFile = () => {
                 </Button>
 
                 <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  @click="getFromClipboard"
+                  :disabled="isGettingFromClipboard"
+                >
+                  <LoaderCircle v-if="isGettingFromClipboard" class="mr-2 h-4 w-4 animate-spin" />
+                  <Clipboard v-else class="mr-2 h-4 w-4" />
+                  {{ isGettingFromClipboard ? (t("messages.loading") || "Loading...") : (t("messages.get_from_clipboard") || "Get from clipboard") }}
+                </Button>
+
+                <Button
                   v-if="feedbackFiles.length > 0"
                   type="button"
                   variant="ghost"
@@ -603,25 +846,40 @@ const deleteFile = () => {
                 </Button>
               </div>
 
-              <div v-if="feedbackFiles.length > 0" class="space-y-2">
+              <div v-if="clipboardMessage" class="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                <p class="text-xs text-blue-800 dark:text-blue-200">{{ clipboardMessage }}</p>
+              </div>
+
+              <div v-if="feedbackFiles.length > 0" class="space-y-2 mt-2">
                 <div
                   v-for="(file, index) in feedbackFiles"
                   :key="index"
                   class="flex items-center gap-2 p-2 bg-muted rounded-md"
                 >
+                  <!-- Image Preview -->
+                  <div v-if="isImageFile(file)" class="flex-shrink-0 cursor-pointer" @click="openImageLightbox(file)">
+                    <img
+                      :src="getFilePreviewUrl(file)"
+                      :alt="file.name"
+                      class="h-10 w-10 object-cover rounded border border-border hover:opacity-80 transition-opacity"
+                    />
+                  </div>
+                  <!-- File Icon for non-images -->
                   <component
-                    :is="getFileIcon('document')"
-                    class="h-4 w-4 text-muted-foreground"
+                    v-else
+                    :is="getFileIcon(file.type || 'document')"
+                    class="h-4 w-4 text-muted-foreground flex-shrink-0"
                   />
-                  <span class="text-sm flex-1">{{ file.name }}</span>
-                  <span class="text-xs text-muted-foreground">
-                    {{ (file.size / 1024 / 1024).toFixed(1) }}MB
+                  <span class="text-sm flex-1 truncate">{{ file.name }}</span>
+                  <span class="text-xs text-muted-foreground whitespace-nowrap">
+                    {{ formatFileSize(file.size) }}
                   </span>
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
                     @click="removeFeedbackFile(index)"
+                    class="flex-shrink-0"
                   >
                     <X class="h-4 w-4" />
                   </Button>
@@ -652,6 +910,26 @@ const deleteFile = () => {
             {{ isUpdatingStatus ? t("messages.updating") : t("messages.update_status") }}
           </Button>
         </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Image Lightbox -->
+    <Dialog :open="imageLightboxOpen" @update:open="(open) => { if (!open) closeImageLightbox(); }">
+      <DialogContent class="max-w-7xl w-full p-0 bg-black/95 border-none [&>button]:hidden">
+        <div class="relative w-full h-[90vh] flex items-center justify-center p-4">
+          <img
+            :src="lightboxImageUrl"
+            :alt="lightboxImageName"
+            class="max-w-full max-h-full object-contain rounded"
+          />
+          <DialogClose class="absolute top-4 right-4 z-50 rounded-md p-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 transition-colors">
+            <X class="w-5 h-5" />
+            <span class="sr-only">Close</span>
+          </DialogClose>
+          <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded text-sm">
+            {{ lightboxImageName }}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   </AppLayout>

@@ -217,6 +217,18 @@ return [
     'days_ago' => 'days ago',
     'sent_by' => 'Sent by',
 
+    // File Status Update
+    'feedback_file_optional' => 'Response File (Optional)',
+    'response_file_optional' => 'Response File (Optional)',
+    'select_file' => 'Select File',
+    'get_from_clipboard' => 'Get from Clipboard',
+    'paste_files_hint' => 'Please press Ctrl+V (or Cmd+V on Mac) to paste files from clipboard',
+    'no_files_in_clipboard' => 'No files found in clipboard. Please copy a file first.',
+    'files_added_from_clipboard' => ':count file(s) added from clipboard',
+    'clear_all' => 'Clear All',
+    'files_selected' => ':count file(s) selected. These files will be sent to the user via Telegram.',
+    'feedback_files_description' => 'These files will be sent to the user via Telegram (multiple files can be selected)',
+
     // Export and Import
     'export' => 'Export',
     'export_csv' => 'Export as CSV',

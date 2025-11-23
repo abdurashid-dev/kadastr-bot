@@ -311,16 +311,6 @@
                 />
               </div>
             </div>
-
-            <div>
-              <Label for="accepted_note">{{ t("messages.approval_notes") }}</Label>
-              <Textarea
-                id="accepted_note"
-                v-model="acceptedNote"
-                :placeholder="t('messages.approval_notes_placeholder')"
-                class="mt-1 min-h-[60px]"
-              />
-            </div>
           </div>
 
           <div>
@@ -343,6 +333,16 @@
                 >
                   <Upload class="mr-2 h-4 w-4" />
                   {{ t("messages.select_file") }}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  @click="getFromClipboard"
+                >
+                  <Clipboard class="mr-2 h-4 w-4" />
+                  {{ t("messages.get_from_clipboard") || "Get from clipboard" }}
                 </Button>
 
                 <Button
@@ -461,8 +461,9 @@ import {
   X,
   LoaderCircle,
   RefreshCw,
+  Clipboard,
 } from "lucide-vue-next";
-import { ref, computed } from "vue";
+import { ref, computed, watch } from "vue";
 import { useTranslations } from "@/composables/useTranslations";
 
 const { t } = useTranslations();
@@ -489,7 +490,6 @@ const isUpdatingStatus = ref(false);
 // Accepted status specific fields
 const registeredCount = ref(0);
 const notRegisteredCount = ref(0);
-const acceptedNote = ref("");
 
 const getFileIcon = (fileType) => {
   switch (fileType) {
@@ -612,7 +612,6 @@ const openStatusDialog = (file) => {
   // Initialize accepted status fields
   registeredCount.value = file.registered_count || 0;
   notRegisteredCount.value = file.not_registered_count || 0;
-  acceptedNote.value = file.accepted_note || "";
 
   statusDialogOpen.value = true;
 };
@@ -632,6 +631,79 @@ const handleFileSelect = (event) => {
   feedbackFiles.value = [...feedbackFiles.value, ...files];
   if (fileInput.value) {
     fileInput.value.value = "";
+  }
+};
+
+const handlePaste = (event) => {
+  // Only handle paste when status dialog is open
+  if (!statusDialogOpen.value) {
+    return;
+  }
+
+  const items = event.clipboardData?.items;
+  if (!items) {
+    return;
+  }
+
+  const pastedFiles = [];
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    if (item.kind === 'file') {
+      const file = item.getAsFile();
+      if (file) {
+        pastedFiles.push(file);
+      }
+    }
+  }
+
+  if (pastedFiles.length > 0) {
+    feedbackFiles.value = [...feedbackFiles.value, ...pastedFiles];
+    event.preventDefault();
+  }
+};
+
+// Add paste event listener when dialog opens
+watch(statusDialogOpen, (isOpen) => {
+  if (isOpen) {
+    // Add paste listener to document
+    document.addEventListener('paste', handlePaste);
+  } else {
+    // Remove paste listener when dialog closes
+    document.removeEventListener('paste', handlePaste);
+  }
+});
+
+const getFromClipboard = async () => {
+  try {
+    // Check if Clipboard API is available
+    if (!navigator.clipboard || !navigator.clipboard.read) {
+      // Fallback: show message to use Ctrl+V / Cmd+V
+      alert(t('messages.paste_files_hint') || 'Please press Ctrl+V (or Cmd+V on Mac) to paste files from clipboard');
+      return;
+    }
+
+    const clipboardItems = await navigator.clipboard.read();
+    const pastedFiles = [];
+
+    for (const clipboardItem of clipboardItems) {
+      for (const type of clipboardItem.types) {
+        if (type.startsWith('image/') || type.startsWith('application/') || type.startsWith('text/')) {
+          const blob = await clipboardItem.getType(type);
+          const file = new File([blob], `pasted-${Date.now()}.${type.split('/')[1] || 'file'}`, { type });
+          pastedFiles.push(file);
+        }
+      }
+    }
+
+    if (pastedFiles.length > 0) {
+      feedbackFiles.value = [...feedbackFiles.value, ...pastedFiles];
+    } else {
+      alert(t('messages.no_files_in_clipboard') || 'No files found in clipboard. Please copy a file first.');
+    }
+  } catch (error) {
+    // Clipboard API might not be available or user denied permission
+    // Fallback: show message to use Ctrl+V / Cmd+V
+    alert(t('messages.paste_files_hint') || 'Please press Ctrl+V (or Cmd+V on Mac) to paste files from clipboard');
   }
 };
 
@@ -659,7 +731,6 @@ const updateStatus = () => {
   if (newStatus.value === "accepted") {
     formData.append("registered_count", registeredCount.value);
     formData.append("not_registered_count", notRegisteredCount.value);
-    formData.append("accepted_note", acceptedNote.value);
   }
 
   // Append multiple feedback files
