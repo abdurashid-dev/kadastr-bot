@@ -40,10 +40,10 @@ class FilesController extends Controller
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('original_filename', 'like', "%{$search}%")
+                $q->whereRaw('name ILIKE ?', ["%{$search}%"])
+                    ->orWhereRaw('original_filename ILIKE ?', ["%{$search}%"])
                     ->orWhereHas('user', function ($userQuery) use ($search) {
-                        $userQuery->where('name', 'like', "%{$search}%");
+                        $userQuery->whereRaw('name ILIKE ?', ["%{$search}%"]);
                     });
             });
         }

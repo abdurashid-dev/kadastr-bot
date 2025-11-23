@@ -3,7 +3,6 @@
 namespace App\Policies;
 
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
 
 class UserPolicy
 {
@@ -30,8 +29,8 @@ class UserPolicy
      */
     public function create(User $user): bool
     {
-        // Only CEOs can create new users
-        return $user->isCeo();
+        // CEOs and Registrators can create new users
+        return $user->isCeo() || $user->isRegistrator();
     }
 
     /**
@@ -39,22 +38,13 @@ class UserPolicy
      */
     public function update(User $user, User $model): bool
     {
-        // Users can update their own profile, CEOs can update any user
+        // Users can update their own profile
         if ($user->id === $model->id) {
             return true;
         }
 
-        // CEOs can update any user
-        if ($user->isCeo()) {
-            return true;
-        }
-
-        // Registrators can update users but not other registrators or CEOs
-        if ($user->isRegistrator() && !$model->isRegistrator() && !$model->isCeo()) {
-            return true;
-        }
-
-        return false;
+        // CEOs and Registrators can update any user
+        return $user->isCeo() || $user->isRegistrator();
     }
 
     /**
@@ -62,8 +52,8 @@ class UserPolicy
      */
     public function delete(User $user, User $model): bool
     {
-        // Only CEOs can delete users
-        return $user->isCeo();
+        // CEOs and Registrators can delete users
+        return $user->isCeo() || $user->isRegistrator();
     }
 
     /**
@@ -71,8 +61,8 @@ class UserPolicy
      */
     public function assignRole(User $user, User $model): bool
     {
-        // Only CEOs can assign roles
-        return $user->isCeo();
+        // CEOs and Registrators can assign roles
+        return $user->isCeo() || $user->isRegistrator();
     }
 
     /**
@@ -88,7 +78,7 @@ class UserPolicy
      */
     public function restore(User $user, User $model): bool
     {
-        return $user->isCeo();
+        return $user->isCeo() || $user->isRegistrator();
     }
 
     /**
@@ -96,6 +86,6 @@ class UserPolicy
      */
     public function forceDelete(User $user, User $model): bool
     {
-        return $user->isCeo();
+        return $user->isCeo() || $user->isRegistrator();
     }
 }

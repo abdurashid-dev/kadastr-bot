@@ -123,9 +123,9 @@ class UserController extends Controller
             ->withCount('uploadedFiles')
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('name', 'like', "%{$search}%")
-                        ->orWhere('email', 'like', "%{$search}%")
-                        ->orWhere('phone_number', 'like', "%{$search}%");
+                    $q->whereRaw('name ILIKE ?', ["%{$search}%"])
+                        ->orWhereRaw('email ILIKE ?', ["%{$search}%"])
+                        ->orWhereRaw('phone_number ILIKE ?', ["%{$search}%"]);
                 });
             })
             ->when($request->role, function ($query, $role) {
@@ -186,6 +186,11 @@ class UserController extends Controller
             return redirect()->route('users.index')->with('error', 'Cannot change role of the last CEO');
         }
 
+        // Prevent changing role of the last Registrator
+        if ($user->isRegistrator() && User::where('role', 'registrator')->count() <= 1) {
+            return redirect()->route('users.index')->with('error', 'Cannot change role of the last Registrator');
+        }
+
         $user->update(['role' => $request->role]);
 
         return redirect()->route('users.index')->with('success', 'User role updated successfully');
@@ -198,9 +203,14 @@ class UserController extends Controller
     {
         $this->authorize('delete', $user);
 
-        // Prevent deletion of the last admin user
+        // Prevent deletion of the last CEO user
         if ($user->isCeo() && User::where('role', 'ceo')->count() <= 1) {
             return redirect()->route('users.index')->with('error', 'Cannot delete the last CEO user');
+        }
+
+        // Prevent deletion of the last Registrator user
+        if ($user->isRegistrator() && User::where('role', 'registrator')->count() <= 1) {
+            return redirect()->route('users.index')->with('error', 'Cannot delete the last Registrator user');
         }
 
         // Prevent users from deleting themselves

@@ -109,6 +109,6 @@ class UploadedFilePolicy
      */
     public function viewAnalytics(User $user): bool
     {
-        return $user->isCeo();
+        return $user->isCeo() || $user->isRegistrator();
     }
 }

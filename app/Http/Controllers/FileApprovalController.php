@@ -4,9 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\UploadedFile;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -20,10 +20,6 @@ class FileApprovalController extends Controller
     public function pendingFiles(Request $request): Response
     {
         $this->authorize('viewAny', UploadedFile::class);
-
-        if (!in_array($request->user()->role, ['checker', 'registrator', 'ceo'])) {
-            abort(403);
-        }
 
         $files = UploadedFile::with('user')
             ->pending()
@@ -42,10 +38,6 @@ class FileApprovalController extends Controller
     public function waitingFiles(Request $request): Response
     {
         $this->authorize('viewAny', UploadedFile::class);
-
-        if (!in_array($request->user()->role, ['registrator', 'ceo'])) {
-            abort(403);
-        }
 
         $files = UploadedFile::with('user')
             ->waiting()
@@ -74,15 +66,11 @@ class FileApprovalController extends Controller
     }
 
     /**
-     * Display analytics dashboard for CEOs
+     * Display analytics dashboard for CEOs and Registrators
      */
     public function analytics(Request $request): Response
     {
         $this->authorize('viewAnalytics', UploadedFile::class);
-
-        if (!$request->user()->isCeo()) {
-            abort(403);
-        }
 
         $stats = [
             'accepted' => UploadedFile::accepted()->count(),
@@ -104,7 +92,7 @@ class FileApprovalController extends Controller
     {
         $this->authorize('approveAsChecker', $file);
 
-        if (!$request->user()->isChecker()) {
+        if (! $request->user()->isChecker()) {
             abort(403);
         }
 
@@ -127,7 +115,7 @@ class FileApprovalController extends Controller
     {
         $this->authorize('approveAsRegistrator', $file);
 
-        if (!$request->user()->isRegistrator()) {
+        if (! $request->user()->isRegistrator()) {
             abort(403);
         }
 
