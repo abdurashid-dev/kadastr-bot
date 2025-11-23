@@ -69,7 +69,7 @@ const changeLanguage = (locale: string) => {
       preserveScroll: false,
     });
   }
-  closeDropdown();
+    closeDropdown();
 };
 
 // Close dropdown when clicking outside

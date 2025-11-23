@@ -108,6 +108,10 @@ return [
     'waiting_files' => 'Кутиш ҳолатидаги файллар',
     'accepted_files' => 'Қабул қилинган файллар',
     'rejected_files' => 'Рад этилган файллар',
+    'region_statistics' => 'Туманлар бўйича статистика',
+    'regions' => 'Туманлар',
+    'accepted_objects' => 'Қабул қилинган объектлар',
+    'min_accepted_objects' => 'Мин объектлар',
 
     // Date Filters
     'date_from' => 'Бошланиш санаси',
@@ -336,6 +340,8 @@ return [
 
     // Export and Import
     'export' => 'Экспорт',
+    'export_csv' => 'CSV сифатида экспорт қилиш',
+    'export_excel' => 'Excel сифатида экспорт қилиш',
     'import' => 'Импорт',
     'export_data' => 'Маълумотларни экспорт қилиш',
     'import_data' => 'Маълумотларни импорт қилиш',

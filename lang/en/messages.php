@@ -36,6 +36,7 @@ return [
     'previous' => 'Previous',
     'loading' => 'Loading...',
     'no_data' => 'No data available',
+    'total' => 'Total',
     'confirm' => 'Confirm',
     'yes' => 'Yes',
     'no' => 'No',
@@ -108,6 +109,10 @@ return [
     'waiting_files' => 'Waiting Files',
     'accepted_files' => 'Accepted Files',
     'rejected_files' => 'Rejected Files',
+    'region_statistics' => 'Statistics by Region',
+    'regions' => 'Regions',
+    'accepted_objects' => 'Accepted Objects',
+    'min_accepted_objects' => 'Min Objects',
 
     // Date Filters
     'date_from' => 'Date From',
@@ -211,4 +216,13 @@ return [
     'hours_ago' => 'hours ago',
     'days_ago' => 'days ago',
     'sent_by' => 'Sent by',
+
+    // Export and Import
+    'export' => 'Export',
+    'export_csv' => 'Export as CSV',
+    'export_excel' => 'Export as Excel',
+    'import' => 'Import',
+    'export_data' => 'Export data',
+    'import_data' => 'Import data',
+    'download_template' => 'Download template',
 ];

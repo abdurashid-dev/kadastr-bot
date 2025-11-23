@@ -25,6 +25,10 @@ Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+Route::get('dashboard/export-region-statistics', [App\Http\Controllers\DashboardController::class, 'exportRegionStatistics'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard.export-region-statistics');
+
 Route::get('telegram/connect', [App\Http\Controllers\DashboardController::class, 'connectTelegram'])
     ->middleware(['auth', 'verified'])
     ->name('telegram.connect');

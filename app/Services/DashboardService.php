@@ -26,6 +26,7 @@ class DashboardService
             'files_by_type' => $this->getFilesByType($startDate, $endDate),
             'recent_files' => $this->getRecentFiles(),
             'monthly_stats' => $this->getMonthlyStats($periods['trend_period'], $startDate, $endDate),
+            'region_statistics' => $this->getRegionStatistics($startDate, $endDate, $periods['sort_by'] ?? 'accepted_objects', $periods['sort_order'] ?? 'desc'),
         ];
     }
 
@@ -179,6 +180,55 @@ class DashboardService
             ->orderBy('month')
             ->pluck('count', 'month')
             ->toArray();
+    }
+
+    private function getRegionStatistics(?string $startDate = null, ?string $endDate = null, string $sortBy = 'accepted_objects', string $sortOrder = 'desc'): array
+    {
+        $query = UploadedFile::join('users', 'uploaded_files.user_id', '=', 'users.id')
+            ->selectRaw('
+                users.region,
+                SUM(CASE WHEN uploaded_files.status = \'accepted\' THEN COALESCE(uploaded_files.registered_count, 0) ELSE 0 END) as accepted_objects,
+                SUM(CASE WHEN uploaded_files.status = \'accepted\' THEN 1 ELSE 0 END) as accepted_files,
+                SUM(CASE WHEN uploaded_files.status = \'rejected\' THEN 1 ELSE 0 END) as rejected_files
+            ')
+            ->whereNotNull('users.region');
+
+        // Default to current week if no dates provided
+        if (! $startDate || ! $endDate) {
+            $monday = now()->startOfWeek();
+            $sunday = now()->endOfWeek();
+
+            $startDate = $monday->format('Y-m-d');
+            $endDate = $sunday->format('Y-m-d');
+        }
+
+        $query->whereBetween('uploaded_files.created_at', [
+            $startDate . ' 00:00:00',
+            $endDate . ' 23:59:59',
+        ]);
+
+        $results = $query->groupBy('users.region')
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'region' => $item->region,
+                    'accepted_objects' => (int) $item->accepted_objects,
+                    'accepted_files' => (int) $item->accepted_files,
+                    'rejected_files' => (int) $item->rejected_files,
+                ];
+            });
+
+        // Sort the results
+        $validSortFields = ['accepted_objects', 'accepted_files', 'rejected_files'];
+        if (in_array($sortBy, $validSortFields)) {
+            if ($sortOrder === 'asc') {
+                $results = $results->sortBy($sortBy);
+            } else {
+                $results = $results->sortByDesc($sortBy);
+            }
+        }
+
+        return $results->values()->toArray();
     }
 
     private function applyPeriodFilter($query, string $period, ?string $startDate = null, ?string $endDate = null, string $dateColumn = 'created_at'): void

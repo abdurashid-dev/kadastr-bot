@@ -116,6 +116,10 @@ return [
     'waiting_files' => 'Kutish holatidagi fayllar',
     'accepted_files' => 'Qabul qilingan fayllar',
     'rejected_files' => 'Rad etilgan fayllar',
+    'region_statistics' => 'Tumanlar bo\'yicha statistika',
+    'regions' => 'Tumanlar',
+    'accepted_objects' => 'Qabul qilingan obyektlar',
+    'min_accepted_objects' => 'Min obyektlar',
 
     // Dashboard
     'dashboard_title' => 'Boshqaruv paneli',
@@ -386,6 +390,8 @@ return [
 
     // Export and Import
     'export' => 'Eksport',
+    'export_csv' => 'CSV sifatida eksport qilish',
+    'export_excel' => 'Excel sifatida eksport qilish',
     'import' => 'Import',
     'export_data' => 'Ma\'lumotlarni eksport qilish',
     'import_data' => 'Ma\'lumotlarni import qilish',

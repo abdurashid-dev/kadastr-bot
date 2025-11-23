@@ -6,6 +6,7 @@ import ApexStatusChart from "@/components/charts/ApexStatusChart.vue";
 import ApexRegionChart from "@/components/charts/ApexRegionChart.vue";
 import ApexFilesByRegionChart from "@/components/charts/ApexFilesByRegionChart.vue";
 import ApexMonthlyTrendChart from "@/components/charts/ApexMonthlyTrendChart.vue";
+import RegionStatisticsTable from "@/components/RegionStatisticsTable.vue";
 import { useTranslations } from "@/composables/useTranslations";
 
 const { t } = useTranslations();
@@ -41,6 +42,14 @@ const props = defineProps({
   trendData: {
     type: Object,
     required: true,
+  },
+  regionStatistics: {
+    type: Array,
+    default: () => [],
+  },
+  filters: {
+    type: Object,
+    default: () => ({}),
   },
   botUsername: {
     type: String,
@@ -109,6 +118,10 @@ const getRoleLabel = (role) => {
     checker: t("messages.role_checker"),
     registrator: t("messages.role_registrator"),
     ceo: t("messages.role_ceo"),
+    branch_agency_head: t("messages.role_branch_agency_head"),
+    branch_chamber_head: t("messages.role_branch_chamber_head"),
+    branch_deputy: t("messages.role_branch_deputy"),
+    onec_developer: t("messages.role_onec_developer"),
   };
   return labels[role] || role;
 };
@@ -116,6 +129,7 @@ const getRoleLabel = (role) => {
 // Telegram connection state
 const isConnecting = ref(false);
 const connectionError = ref(null);
+
 
 // Handle Telegram connection
 const connectToTelegram = async () => {
@@ -561,6 +575,12 @@ const connectToTelegram = async () => {
       <div class="grid grid-cols-1 lg:grid-cols-1 gap-6">
         <ApexMonthlyTrendChart :data="trendData" />
       </div>
+
+      <!-- Region Statistics Table -->
+      <RegionStatisticsTable
+        :region-statistics="regionStatistics"
+        :filters="filters"
+      />
 
       <!-- Recent Files -->
       <div
