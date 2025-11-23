@@ -52,7 +52,7 @@ class SendTelegramMessage implements ShouldQueue
         $errorMsg = null;
 
         try {
-            $messageText = "📨 <b>Xabar</b>\n\n" . $this->message . "\n\n<i>Yuboruvchi: {$senderName}</i>";
+            $messageText = "📨 <b>Xabar</b>\n👤 {$senderName}\n\n" . $this->message;
 
             $response = Http::timeout(30)->post("https://api.telegram.org/bot{$bot->token}/sendMessage", [
                 'chat_id' => $user->telegram_id,
