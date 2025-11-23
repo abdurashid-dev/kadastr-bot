@@ -151,15 +151,17 @@ const sendMessageToSelected = () => {
 
   isSending.value = true;
 
-  const userIds = selectAllMode.value 
-    ? 'all' 
-    : selectedUsers.value;
-
-  router.post('/users/bulk-send-message', {
-    user_ids: userIds,
+  const payload = {
     message: messageText.value.trim(),
     select_all: selectAllMode.value,
-  }, {
+  };
+
+  // Only include user_ids if not selecting all users
+  if (!selectAllMode.value) {
+    payload.user_ids = selectedUsers.value;
+  }
+
+  router.post('/users/bulk-send-message', payload, {
     onSuccess: () => {
       successMessage.value = t("messages.messages_sent_success");
       closeMessageDialog();
