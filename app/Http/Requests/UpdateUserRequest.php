@@ -29,7 +29,7 @@ class UpdateUserRequest extends FormRequest
             'email' => 'required|string|email|max:255|unique:users,email,'.$userId,
             'phone_number' => 'nullable|string|max:20|unique:users,phone_number,'.$userId,
             'region' => 'nullable|string|max:255',
-            'role' => 'nullable|in:user,checker,registrator,ceo',
+            'role' => 'nullable|in:user,checker,registrator,ceo,branch_agency_head,branch_chamber_head,branch_deputy,onec_developer',
             'password' => ['nullable', 'confirmed', Password::defaults()],
         ];
     }

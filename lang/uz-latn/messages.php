@@ -195,6 +195,10 @@ return [
     'role_checker' => 'Tekshiruvchi',
     'role_registrator' => 'Bino inshoat xodimi',
     'role_ceo' => 'Rahbar',
+    'role_branch_agency_head' => 'Filial agentlik rahbari',
+    'role_branch_chamber_head' => 'Filial palata rahbari',
+    'role_branch_deputy' => 'Filial o\'rinbosari',
+    'role_onec_developer' => '1C dasturchi',
 
     // File Types
     'file_type_document' => 'Hujjat',

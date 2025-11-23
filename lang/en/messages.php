@@ -157,6 +157,10 @@ return [
     'role_checker' => 'Checker',
     'role_registrator' => 'Construction Officer',
     'role_ceo' => 'Manager',
+    'role_branch_agency_head' => 'Branch Agency Head',
+    'role_branch_chamber_head' => 'Branch Chamber Head',
+    'role_branch_deputy' => 'Branch Deputy',
+    'role_onec_developer' => '1C Developer',
 
     // File Types
     'file_type_document' => 'Document',

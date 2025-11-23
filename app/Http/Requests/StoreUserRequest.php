@@ -27,7 +27,7 @@ class StoreUserRequest extends FormRequest
             'email' => 'required|string|email|max:255|unique:users,email',
             'phone_number' => 'nullable|string|max:20|unique:users,phone_number',
             'region' => 'nullable|string|max:255',
-            'role' => 'required|in:user,checker,registrator,ceo',
+            'role' => 'required|in:user,checker,registrator,ceo,branch_agency_head,branch_chamber_head,branch_deputy,onec_developer',
             'password' => ['required', 'confirmed', Password::defaults()],
         ];
     }

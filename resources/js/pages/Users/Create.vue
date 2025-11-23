@@ -34,6 +34,8 @@ import {
   UserCheck,
   Crown,
   Save,
+  Building2,
+  Code,
 } from "lucide-vue-next";
 
 const { t } = useTranslations();
@@ -152,6 +154,10 @@ const getRoleLabel = (role) => {
     checker: t("messages.role_checker"),
     registrator: t("messages.role_registrator"),
     ceo: t("messages.role_ceo"),
+    branch_agency_head: t("messages.role_branch_agency_head"),
+    branch_chamber_head: t("messages.role_branch_chamber_head"),
+    branch_deputy: t("messages.role_branch_deputy"),
+    onec_developer: t("messages.role_onec_developer"),
   };
   return labels[role] || role;
 };
@@ -162,6 +168,10 @@ const getRoleIcon = (role) => {
     checker: Shield,
     registrator: UserCheck,
     ceo: Crown,
+    branch_agency_head: Building2,
+    branch_chamber_head: Building2,
+    branch_deputy: Building2,
+    onec_developer: Code,
   };
   return icons[role] || User;
 };

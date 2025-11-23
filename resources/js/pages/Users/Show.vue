@@ -53,6 +53,8 @@ import {
   UserCheck,
   Crown,
   User,
+  Building2,
+  Code,
 } from "lucide-vue-next";
 
 const { t } = useTranslations();
@@ -171,6 +173,10 @@ const getRoleIcon = (role) => {
     checker: Shield,
     registrator: UserCheck,
     ceo: Crown,
+    branch_agency_head: Building2,
+    branch_chamber_head: Building2,
+    branch_deputy: Building2,
+    onec_developer: Code,
   };
   return icons[role] || UserIcon;
 };
@@ -181,6 +187,10 @@ const getRoleLabel = (role) => {
     checker: t("messages.role_checker"),
     registrator: t("messages.role_registrator"),
     ceo: t("messages.role_ceo"),
+    branch_agency_head: t("messages.role_branch_agency_head"),
+    branch_chamber_head: t("messages.role_branch_chamber_head"),
+    branch_deputy: t("messages.role_branch_deputy"),
+    onec_developer: t("messages.role_onec_developer"),
   };
   return labels[role] || role;
 };
@@ -394,6 +404,30 @@ const handleMessagesPerPageChange = (value) => {
                       <div class="flex items-center gap-2">
                         <Crown class="h-4 w-4" />
                         <span>{{ t("messages.role_ceo") }}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="branch_agency_head">
+                      <div class="flex items-center gap-2">
+                        <Building2 class="h-4 w-4" />
+                        <span>{{ t("messages.role_branch_agency_head") }}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="branch_chamber_head">
+                      <div class="flex items-center gap-2">
+                        <Building2 class="h-4 w-4" />
+                        <span>{{ t("messages.role_branch_chamber_head") }}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="branch_deputy">
+                      <div class="flex items-center gap-2">
+                        <Building2 class="h-4 w-4" />
+                        <span>{{ t("messages.role_branch_deputy") }}</span>
+                      </div>
+                    </SelectItem>
+                    <SelectItem value="onec_developer">
+                      <div class="flex items-center gap-2">
+                        <Code class="h-4 w-4" />
+                        <span>{{ t("messages.role_onec_developer") }}</span>
                       </div>
                     </SelectItem>
                   </SelectContent>

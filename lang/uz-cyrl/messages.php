@@ -150,6 +150,10 @@ return [
     'role_checker' => 'Текширувчи',
     'role_registrator' => 'Бино иншоот ходими',
     'role_ceo' => 'Раҳбар',
+    'role_branch_agency_head' => 'Филиал агентлик раҳбари',
+    'role_branch_chamber_head' => 'Филиал палата раҳбари',
+    'role_branch_deputy' => 'Филиал ўринбосари',
+    'role_onec_developer' => '1C дастурчи',
 
     // File Types
     'file_type_document' => 'Ҳужжат',

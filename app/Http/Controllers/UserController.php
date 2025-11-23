@@ -25,7 +25,7 @@ class UserController extends Controller
         $this->authorize('create', User::class);
 
         return Inertia::render('Users/Create', [
-            'roles' => ['user', 'checker', 'registrator', 'ceo'],
+            'roles' => ['user', 'checker', 'registrator', 'ceo', 'branch_agency_head', 'branch_chamber_head', 'branch_deputy', 'onec_developer'],
             'regions' => $this->getRegions(),
         ]);
     }
@@ -80,7 +80,7 @@ class UserController extends Controller
 
         return Inertia::render('Users/Edit', [
             'user' => $user,
-            'roles' => ['user', 'checker', 'registrator', 'ceo'],
+            'roles' => ['user', 'checker', 'registrator', 'ceo', 'branch_agency_head', 'branch_chamber_head', 'branch_deputy', 'onec_developer'],
             'regions' => $this->getRegions(),
         ]);
     }
@@ -138,7 +138,7 @@ class UserController extends Controller
         return Inertia::render('Users/Index', [
             'users' => $users,
             'filters' => $request->only(['search', 'role', 'per_page']),
-            'roles' => ['user', 'checker', 'registrator', 'ceo'],
+            'roles' => ['user', 'checker', 'registrator', 'ceo', 'branch_agency_head', 'branch_chamber_head', 'branch_deputy', 'onec_developer'],
         ]);
     }
 
@@ -178,7 +178,7 @@ class UserController extends Controller
         $this->authorize('assignRole', $user);
 
         $request->validate([
-            'role' => 'required|in:user,checker,registrator,ceo',
+            'role' => 'required|in:user,checker,registrator,ceo,branch_agency_head,branch_chamber_head,branch_deputy,onec_developer',
         ]);
 
         // Prevent changing role of the last CEO
@@ -261,7 +261,7 @@ class UserController extends Controller
                 'sender_id' => auth()->id(),
             ]);
 
-            return redirect()->back()->with('success', 'Message queued successfully. It will be sent to ' . $user->name . ' via Telegram shortly.');
+            return redirect()->back()->with('success', 'Message queued successfully. It will be sent to '.$user->name.' via Telegram shortly.');
         } catch (\Exception $e) {
             Log::error('Error queuing message', [
                 'user_id' => $user->id,
@@ -289,8 +289,8 @@ class UserController extends Controller
             $users = $request->boolean('select_all')
                 ? User::whereNotNull('telegram_id')->get()
                 : User::whereIn('id', $request->user_ids ?? [])
-                ->whereNotNull('telegram_id')
-                ->get();
+                    ->whereNotNull('telegram_id')
+                    ->get();
 
             if ($users->isEmpty()) {
                 return redirect()->back()->with('error', 'No users with Telegram IDs found.');
