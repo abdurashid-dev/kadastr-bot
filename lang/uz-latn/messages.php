@@ -585,4 +585,5 @@ return [
     'minutes_ago' => 'daqiqa oldin',
     'hours_ago' => 'soat oldin',
     'days_ago' => 'kun oldin',
+    'sent_by' => 'Yuboruvchi',
 ];

@@ -38,6 +38,9 @@ class SendTelegramMessage implements ShouldQueue
             return;
         }
 
+        $sender = User::find($this->senderId);
+        $senderName = $sender?->name ?? 'Unknown';
+
         $bot = TelegraphBot::first();
 
         if (! $bot || ! $bot->token) {
@@ -49,9 +52,11 @@ class SendTelegramMessage implements ShouldQueue
         $errorMsg = null;
 
         try {
+            $messageText = "📨 <b>Xabar</b>\n\n" . $this->message . "\n\n<i>Yuboruvchi: {$senderName}</i>";
+
             $response = Http::timeout(30)->post("https://api.telegram.org/bot{$bot->token}/sendMessage", [
                 'chat_id' => $user->telegram_id,
-                'text' => "📨 <b>Xabar</b>\n\n" . $this->message,
+                'text' => $messageText,
                 'parse_mode' => 'HTML',
             ]);
 

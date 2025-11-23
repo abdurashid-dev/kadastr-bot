@@ -532,34 +532,44 @@ const handleMessagesPerPageChange = (value) => {
                   >
                     <div class="flex items-start justify-between gap-4">
                       <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 mb-2">
-                          <Avatar class="h-6 w-6">
-                            <AvatarFallback class="text-xs">
-                              {{ msg.sender?.name?.charAt(0).toUpperCase() || "A" }}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span class="text-sm font-medium">{{ msg.sender?.name || t("messages.unknown_user") }}</span>
+                        <div class="flex items-center gap-2 mb-3">
+                          <div class="flex items-center gap-2">
+                            <Avatar class="h-7 w-7">
+                              <AvatarFallback class="text-xs font-semibold">
+                                {{ msg.sender?.name?.charAt(0).toUpperCase() || "A" }}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div class="flex flex-col">
+                              <div class="flex items-center gap-2">
+                                <span class="text-xs text-muted-foreground">{{ t("messages.sent_by") || "Sent by" }}:</span>
+                                <span class="text-sm font-semibold text-foreground">{{ msg.sender?.name || t("messages.unknown_user") }}</span>
+                              </div>
+                            </div>
+                          </div>
                           <Badge
                             :variant="msg.sent_successfully ? 'default' : 'destructive'"
-                            class="text-xs"
+                            class="text-xs ml-auto"
                           >
                             <CheckCircle v-if="msg.sent_successfully" class="mr-1 h-3 w-3" />
                             <XCircle v-else class="mr-1 h-3 w-3" />
                             {{ msg.sent_successfully ? t("messages.sent") || "Sent" : t("messages.failed") || "Failed" }}
                           </Badge>
                         </div>
-                        <p class="text-sm text-foreground whitespace-pre-wrap break-words">{{ msg.message }}</p>
-                        <div class="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                          <span class="flex items-center gap-1">
-                            <Clock class="h-3 w-3" />
-                            {{ formatRelativeTime(msg.created_at) }}
-                          </span>
-                          <span v-if="msg.is_bulk" class="text-xs">
-                            {{ t("messages.bulk_message") || "Bulk" }}
-                          </span>
-                        </div>
-                        <div v-if="msg.error_message" class="mt-2 text-xs text-destructive bg-destructive/10 p-2 rounded">
-                          {{ msg.error_message }}
+                        <div class="pl-9">
+                          <p class="text-sm text-foreground whitespace-pre-wrap break-words mb-2">{{ msg.message }}</p>
+                          <div class="flex items-center gap-4 text-xs text-muted-foreground">
+                            <span class="flex items-center gap-1">
+                              <Clock class="h-3 w-3" />
+                              {{ formatRelativeTime(msg.created_at) }}
+                            </span>
+                            <span v-if="msg.is_bulk" class="flex items-center gap-1">
+                              <UserIcon class="h-3 w-3" />
+                              {{ t("messages.bulk_message") || "Bulk message" }}
+                            </span>
+                          </div>
+                          <div v-if="msg.error_message" class="mt-2 text-xs text-destructive bg-destructive/10 p-2 rounded">
+                            {{ msg.error_message }}
+                          </div>
                         </div>
                       </div>
                     </div>
